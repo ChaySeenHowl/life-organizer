@@ -20,3 +20,5 @@ Keep these paths unchanged so the seasonal icons and wallpaper load:
 `source-assets/` contains original artwork kept for reference; the published
 app does not need it. Opening `index.html` with the GitHub file viewer does not
 run the app; use the GitHub Pages URL instead.
+
+
