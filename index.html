@@ -18299,17 +18299,56 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         const todayStr = getSaoPauloDateStr();
         const snapshotName = `backup-${todayStr}.json`;
 
-        // Check children of Side Quests folder
-        const listRes = await fetchWithGraphAuth('https://graph.microsoft.com/v1.0/me/drive/root:/Side%20Quests/children?$select=id,name,lastModifiedDateTime');
-        if (!listRes.ok) {
-          const err = await listRes.text();
-          throw new Error(`Failed to check snapshots: ${err}`);
+        // Check children of Side Quests folder — 404 / itemNotFound is treated as empty list
+        let children = [];
+        try {
+          const listRes = await fetchWithGraphAuth('https://graph.microsoft.com/v1.0/me/drive/root:/Side%20Quests/children?$select=id,name,lastModifiedDateTime');
+          if (listRes.status === 404) {
+            children = [];
+          } else if (!listRes.ok) {
+            const errText = await listRes.text().catch(() => '');
+            if (listRes.status === 404 || errText.includes('itemNotFound') || errText.includes('ResourceNotFound')) {
+              children = [];
+            } else {
+              throw new Error(`Failed to check snapshots: ${errText}`);
+            }
+          } else {
+            const listData = await listRes.json().catch(() => ({}));
+            children = listData.value || [];
+          }
+        } catch (err) {
+          const msg = (err?.message || String(err)).toLowerCase();
+          if (msg.includes('itemnotfound') || msg.includes('404') || msg.includes('resourcenotfound')) {
+            children = [];
+          } else {
+            throw err;
+          }
         }
 
-        const listData = await listRes.json();
-        const children = listData.value || [];
         const existingSnapshots = children.filter(c => /^backup-\d{4}-\d{2}-\d{2}\.json$/.test(c.name));
-        const hasToday = existingSnapshots.some(s => s.name === snapshotName);
+        let hasToday = existingSnapshots.some(s => s.name === snapshotName);
+
+        // Per-file metadata check fallback (404 / itemNotFound is treated as not existing)
+        if (!hasToday) {
+          try {
+            const fileRes = await fetchWithGraphAuth(`https://graph.microsoft.com/v1.0/me/drive/root:/Side%20Quests/${encodeURIComponent(snapshotName)}?$select=id,name`);
+            if (fileRes.status === 200) {
+              hasToday = true;
+            } else if (fileRes.status === 404) {
+              hasToday = false;
+            } else {
+              const fileErr = await fileRes.text().catch(() => '');
+              if (fileErr.includes('itemNotFound') || fileErr.includes('ResourceNotFound')) {
+                hasToday = false;
+              }
+            }
+          } catch (fileCatch) {
+            const msg = (fileCatch?.message || String(fileCatch)).toLowerCase();
+            if (msg.includes('itemnotfound') || msg.includes('404') || msg.includes('resourcenotfound')) {
+              hasToday = false;
+            }
+          }
+        }
 
         if (!hasToday) {
           logSyncEvent(`Uploading daily snapshot: ${snapshotName}`);
@@ -18322,26 +18361,51 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         if (odHasPrunedThisSession) return;
         odHasPrunedThisSession = true;
 
-        const refreshRes = await fetchWithGraphAuth('https://graph.microsoft.com/v1.0/me/drive/root:/Side%20Quests/children?$select=id,name');
-        if (!refreshRes.ok) {
-          const err = await refreshRes.text();
-          throw new Error(`Failed to list snapshots for pruning: ${err}`);
+        let snapshots = [];
+        try {
+          const refreshRes = await fetchWithGraphAuth('https://graph.microsoft.com/v1.0/me/drive/root:/Side%20Quests/children?$select=id,name');
+          if (refreshRes.status === 404) {
+            snapshots = [];
+          } else if (!refreshRes.ok) {
+            const errText = await refreshRes.text().catch(() => '');
+            if (refreshRes.status === 404 || errText.includes('itemNotFound') || errText.includes('ResourceNotFound')) {
+              snapshots = [];
+            } else {
+              throw new Error(`Failed to list snapshots for pruning: ${errText}`);
+            }
+          } else {
+            const freshData = await refreshRes.json().catch(() => ({}));
+            snapshots = (freshData.value || [])
+              .filter(c => /^backup-\d{4}-\d{2}-\d{2}\.json$/.test(c.name))
+              .sort((a, b) => b.name.localeCompare(a.name)); // newest first
+          }
+        } catch (err) {
+          const msg = (err?.message || String(err)).toLowerCase();
+          if (msg.includes('itemnotfound') || msg.includes('404') || msg.includes('resourcenotfound')) {
+            snapshots = [];
+          } else {
+            throw err;
+          }
         }
-
-        const freshData = await refreshRes.json();
-        const snapshots = (freshData.value || [])
-          .filter(c => /^backup-\d{4}-\d{2}-\d{2}\.json$/.test(c.name))
-          .sort((a, b) => b.name.localeCompare(a.name)); // newest first
 
         if (snapshots.length > 30) {
           const toDelete = snapshots.slice(30);
           for (const item of toDelete) {
-            const delRes = await fetchWithGraphAuth(`https://graph.microsoft.com/v1.0/me/drive/items/${item.id}`, { method: 'DELETE' });
-            if (!delRes.ok && delRes.status !== 204 && delRes.status !== 404) {
-              const err = await delRes.text();
-              throw new Error(`Failed to delete old snapshot ${item.name}: ${err}`);
+            try {
+              const delRes = await fetchWithGraphAuth(`https://graph.microsoft.com/v1.0/me/drive/items/${item.id}`, { method: 'DELETE' });
+              if (!delRes.ok && delRes.status !== 204 && delRes.status !== 404) {
+                const err = await delRes.text();
+                throw new Error(`Failed to delete old snapshot ${item.name}: ${err}`);
+              }
+              logSyncEvent(`Pruned older snapshot: ${item.name}`);
+            } catch (delErr) {
+              const msg = (delErr?.message || String(delErr)).toLowerCase();
+              if (msg.includes('itemnotfound') || msg.includes('404')) {
+                // already gone, harmless
+              } else {
+                throw delErr;
+              }
             }
-            logSyncEvent(`Pruned older snapshot: ${item.name}`);
           }
         }
       }
@@ -18441,15 +18505,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
             currentStage = stageName;
           });
 
-          // Stage: snapshot (daily snapshot)
-          currentStage = 'snapshot';
-          await handleDailySnapshot(fileBytes);
-
-          // Stage: prune (delete old snapshots)
-          currentStage = 'prune';
-          await pruneOldSnapshots();
-
-          // Successful upload: update metadata & Last Cloud Sync only now
+          // Main backup upload succeeded — this defines sync success
           if (uploadedItem && uploadedItem.lastModifiedDateTime) {
             const cloudModified = new Date(uploadedItem.lastModifiedDateTime).getTime();
             localStorage.setItem('sq_od_last_cloud_seen_at', String(cloudModified));
@@ -18458,8 +18514,28 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           localStorage.setItem('sq_od_last_sync_time', String(nowMs));
           localStorage.removeItem('sq_local_dirty');
           state.hasLocalEdits = false;
-
           logSyncEvent('Uploaded backup.json to OneDrive');
+
+          // Stage: snapshot (daily snapshot, non-fatal)
+          try {
+            currentStage = 'snapshot';
+            await handleDailySnapshot(fileBytes);
+          } catch (snapErr) {
+            const reason = snapErr?.message || String(snapErr);
+            console.warn('Snapshot step skipped:', snapErr);
+            logSyncEvent(`Snapshot step skipped: ${reason}`);
+          }
+
+          // Stage: prune (delete old snapshots, non-fatal)
+          try {
+            currentStage = 'prune';
+            await pruneOldSnapshots();
+          } catch (pruneErr) {
+            const reason = pruneErr?.message || String(pruneErr);
+            console.warn('Prune step skipped:', pruneErr);
+            logSyncEvent(`Snapshot prune skipped: ${reason}`);
+          }
+
           setSyncState('Connected');
           showToast('OneDrive sync complete', 'success');
         } catch (err) {
