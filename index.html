@@ -256,7 +256,8 @@
                 var theme = localStorage.getItem('sq_active_theme') || 'default';
                 var themePalettes = {
                     default: { primary: '#161b22', secondary: '#0d1117', tertiary: '#21262d', highlight: '#d99b26' },
-                    halloween: { primary: '#1a1226', secondary: '#0d0a14', tertiary: '#261b38', highlight: '#ff7518' }
+                    halloween: { primary: '#1a1226', secondary: '#0d0a14', tertiary: '#261b38', highlight: '#ff7518' },
+                    christmas: { primary: '#12382f', secondary: '#091d19', tertiary: '#1b493d', highlight: '#d64a45' }
                 };
                 var base = themePalettes[theme] || themePalettes.default;
                 var overrides = {};
@@ -331,6 +332,9 @@
 
                 if (theme === 'halloween') {
                     root.classList.add('theme-halloween');
+                }
+                if (theme === 'christmas') {
+                    root.classList.add('theme-christmas');
                 }
             } catch (e) { }
         })();
@@ -638,6 +642,13 @@
 
         .nav-item-btn.active svg.scroll-icon {
             filter: drop-shadow(0 0 6px rgba(217, 155, 38, 0.4));
+        }
+
+        .theme-card-christmas-icon {
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+            flex: 0 0 18px;
         }
 
         .nav-tag-badge {
@@ -4910,8 +4921,16 @@
         }
 
         /* Halloween Theme Specific Styling & Atmospheric Effects */
+        body.theme-halloween {
+            background-color: #0d0a14;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='190' viewBox='0 0 220 190'%3E%3Cg fill='%23ff7518' fill-opacity='.14' stroke='%23ff9a3c' stroke-opacity='.42' stroke-width='2'%3E%3Cpath d='M40 59c-7-11 3-21 15-15 9-8 21-4 23 5 15-2 24 7 22 20-1 8-6 13-12 17-8 6-18 10-31 10-20 0-36-10-38-25-1-5 4-10 11-12z'/%3E%3Cpath d='M68 45c1-8 6-11 12-11-1 6-4 10-11 12' fill='%237e9b35' stroke='%237e9b35'/%3E%3Cpath d='M50 58l7 10-9 1m39-11l-7 10 10 1M52 77q14 15 30 0l-5 9H58z' fill='%23ffb347' fill-opacity='.8'/%3E%3Cpath d='M153 135c-6-9 2-17 12-12 7-7 17-3 18 5 12-2 19 6 17 16-1 6-5 10-10 13-7 5-15 8-25 8-16 0-29-8-30-20-1-5 3-8 9-10z'/%3E%3Cpath d='M174 123c1-6 5-9 10-9-1 5-3 8-9 10' fill='%237e9b35' stroke='%237e9b35'/%3E%3Cpath d='M160 134l6 8-8 1m30-9l-6 8 8 1m-28 6q11 12 23 0l-4 7h-14z' fill='%23ffb347' fill-opacity='.8'/%3E%3C/g%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-position: 12px 18px;
+            background-attachment: fixed;
+        }
+
         .theme-halloween #main-content {
-            background: radial-gradient(circle at 50% 12%, rgba(138, 43, 226, 0.09) 0%, rgba(13, 10, 20, 0) 65%), var(--bg);
+            background: radial-gradient(ellipse at 50% 8%, rgba(138, 43, 226, 0.08) 0%, rgba(13, 10, 20, 0.04) 75%);
         }
 
         .theme-halloween .brand-icon-box {
@@ -4921,8 +4940,15 @@
         }
 
         .theme-halloween .top-bar {
+            background: rgba(26, 18, 38, 0.94);
             border-bottom: 1px solid rgba(255, 117, 24, 0.35);
             box-shadow: 0 2px 14px rgba(255, 117, 24, 0.08);
+            backdrop-filter: blur(8px);
+        }
+
+        .theme-halloween #sidebar {
+            background: rgba(26, 18, 38, 0.93);
+            backdrop-filter: blur(8px);
         }
 
         .theme-halloween .sq-toast {
@@ -4964,6 +4990,121 @@
             display: inline-flex !important;
             align-items: center;
             justify-content: center;
+        }
+
+        .theme-christmas {
+            --christmas-red: #d64a45;
+            --christmas-green: #12382f;
+            --christmas-gold: #e8bd67;
+            --christmas-snow: #e5f4f1;
+        }
+
+        html.theme-christmas body,
+        body.theme-christmas {
+            background-color: #091d19;
+            background-image:
+                radial-gradient(circle, rgba(229, 244, 241, .65) 1px, transparent 1.7px),
+                radial-gradient(circle, rgba(229, 244, 241, .4) 1px, transparent 1.8px),
+                radial-gradient(circle, rgba(229, 244, 241, .22) .8px, transparent 1.5px);
+            background-size: 83px 91px, 137px 149px, 53px 61px;
+            background-position: 8px 12px, 41px 63px, 22px 39px;
+            background-attachment: fixed;
+        }
+
+        .theme-christmas #main-content {
+            background: radial-gradient(ellipse at 50% 8%, rgba(32, 105, 78, .16), rgba(9, 29, 25, .06) 75%);
+        }
+
+        .theme-christmas #sidebar,
+        .theme-christmas .top-bar {
+            background: rgba(18, 56, 47, .94);
+            backdrop-filter: blur(8px);
+        }
+
+        .theme-christmas .top-bar {
+            border-bottom-color: rgba(232, 189, 103, .36);
+            box-shadow: 0 2px 14px rgba(8, 22, 17, .22);
+        }
+
+        .theme-christmas .brand-icon-box {
+            background: linear-gradient(135deg, rgba(214, 74, 69, .24), rgba(232, 189, 103, .12));
+            border-color: rgba(232, 189, 103, .48);
+            box-shadow: 0 0 12px rgba(232, 189, 103, .12);
+        }
+
+        .theme-christmas .brand-icon-box > svg,
+        .theme-christmas #btn-sidebar-add-kanban .theme-icon-def,
+        .theme-christmas #btn-sidebar-add-kanban .theme-icon-hw {
+            display: none !important;
+        }
+
+        .theme-christmas .brand-icon-box::after,
+        .theme-christmas #btn-sidebar-add-kanban::before {
+            content: '';
+            display: block;
+            width: 23px;
+            height: 23px;
+            flex: 0 0 23px;
+            background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M10 3h12l-1 5 4 4-2 4 2 5-5 7H10l-5-7 2-5-2-4 4-4z' fill='%23c92f3b' stroke='%23f0c568' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M10 3h12l-1 5H11z' fill='%23f4f0df' stroke='%23f4f0df' stroke-width='1.2' stroke-linejoin='round'/%3E%3Cpath d='M8 12c4 2 12 2 16 0m-18 8c6 3 14 3 20 0' fill='none' stroke='%23f0c568' stroke-width='1.7'/%3E%3Ccircle cx='16' cy='17' r='2' fill='%23f4f0df'/%3E%3C/svg%3E");
+        }
+
+        .theme-christmas #btn-sidebar-add-kanban::before {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            flex-basis: 20px;
+        }
+
+        .theme-christmas #btn-toggle-filter > svg {
+            display: none;
+        }
+
+        .theme-christmas #btn-toggle-filter::before {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            flex: 0 0 16px;
+            background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3h10l2 3v13l-2 2H7l-2-2V6z' fill='%238b302f' stroke='%23e8bd67' stroke-width='1.2'/%3E%3Cpath d='M8 4v16m4-17v18m4-18v18' stroke='%23f3e8cf' stroke-width='1.6'/%3E%3Cpath d='M5 9h14M5 15h14' stroke='%233b8a62' stroke-width='1.4'/%3E%3C/svg%3E");
+        }
+
+        .theme-christmas .page-heading::after {
+            content: '';
+            display: inline-block;
+            width: 25px;
+            height: 23px;
+            flex: 0 0 25px;
+            margin-left: 2px;
+            background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 32'%3E%3Cpath d='M5 25c0-3 2-5 5-5h17c3 0 5 2 5 5v3H5z' fill='%23f3efe2' stroke='%23d8d2c5' stroke-width='1.4'/%3E%3Cpath d='M9 20C10 11 18 5 30 4c0 10-5 17-15 18z' fill='%23c92f3b' stroke='%23f0c568' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M15 19c3-5 7-9 13-13' fill='none' stroke='%23f3efe2' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='30' cy='4' r='3' fill='%23f3efe2' stroke='%23d8d2c5' stroke-width='1.2'/%3E%3C/svg%3E");
+        }
+
+        .theme-christmas .nav-item-btn > svg,
+        .theme-christmas .nav-item-btn > span > svg {
+            display: none !important;
+        }
+
+        .theme-christmas .nav-item-btn::before {
+            content: '';
+            display: block;
+            width: 18px;
+            height: 18px;
+            flex: 0 0 18px;
+            background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d9eee7' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2v20M3.34 7l17.32 10M3.34 17 20.66 7M9 4l3 2 3-2m-6 16 3-2 3 2M4 9l3-1 1-3m12 11-3 1-1 3M4 15l3 1 1 3m12-11-3-1-1-3'/%3E%3C/svg%3E");
+        }
+
+        .theme-christmas .nav-item-btn.active::before,
+        .theme-christmas .nav-item-btn:hover::before {
+            filter: drop-shadow(0 0 4px rgba(229, 244, 241, .45));
+        }
+
+        .theme-christmas .sq-toast {
+            border-left-color: var(--christmas-red);
+            border-top-color: rgba(232, 189, 103, .42);
+        }
+
+        .theme-christmas .modal-dialog::after {
+            opacity: .25;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%23e8bd67' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M20 2v36M4.4 11l31.2 18M4.4 29 35.6 11M15 5l5 3 5-3m-10 30 5-3 5 3M6 14l5-1 2-5m18 17-5 1-2 5M6 26l5 1 2 5m18-18-5-1-2-5'/%3E%3C/svg%3E");
         }
 
         /* Diagrams Grid & Card Views */
@@ -5225,62 +5366,112 @@
                     </li>
                     <li>
                         <button class="nav-item-btn" id="nav-movies" type="button">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="3" width="20" height="18" rx="2.5"></rect>
-                                <path d="M7 3v18"></path>
-                                <path d="M17 3v18"></path>
-                                <path d="M2 8h5"></path>
-                                <path d="M2 13h5"></path>
-                                <path d="M2 18h5"></path>
-                                <path d="M17 8h5"></path>
-                                <path d="M17 13h5"></path>
-                                <path d="M17 18h5"></path>
-                            </svg>
+                            <span class="theme-icon-def">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="3" width="20" height="18" rx="2.5"></rect>
+                                    <path d="M7 3v18"></path>
+                                    <path d="M17 3v18"></path>
+                                    <path d="M2 8h5"></path>
+                                    <path d="M2 13h5"></path>
+                                    <path d="M2 18h5"></path>
+                                    <path d="M17 8h5"></path>
+                                    <path d="M17 13h5"></path>
+                                    <path d="M17 18h5"></path>
+                                </svg>
+                            </span>
+                            <span class="theme-icon-hw" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.7" stroke-linejoin="round">
+                                    <path d="M4 21V12a8 8 0 0 1 16 0v9z" fill="currentColor" fill-opacity=".14"/>
+                                    <path d="M4 12a8 8 0 0 1 16 0M8 11h.1m7.8 0h.1M9 16q3 2 6 0"/>
+                                    <path d="M4 21h16M8 21v-3m8 3v-3"/>
+                                </svg>
+                            </span>
                             <span>Movies & Shows</span>
                         </button>
                     </li>
                     <li>
                         <button class="nav-item-btn" id="nav-courses" type="button">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                                <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                            </svg>
+                            <span class="theme-icon-def">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                                </svg>
+                            </span>
+                            <span class="theme-icon-hw" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22v-8m0 2-4-4m4 7 4-4M8 13l-2-3m10 3 2-3"/>
+                                    <path d="M5 10 3 7m16 3 2-3M8 14l-1 4m9-4 1 4"/>
+                                    <path d="M4 21h16"/>
+                                </svg>
+                            </span>
                             <span>Courses</span>
                         </button>
                     </li>
                     <li>
                         <button class="nav-item-btn" id="nav-books" type="button">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                            </svg>
+                            <span class="theme-icon-def">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                            </span>
+                            <span class="theme-icon-hw" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 3c-1.4-2-4.8-.8-4.2 1.7-2.6-1-4.4 1.8-2.6 3.7-2.5.7-2.2 4 .3 4.3-1.2 2.4 1.2 4.5 3.3 3.1.5 2.7 4 2.7 4.5 0 2.1 1.4 4.5-.7 3.3-3.1 2.5-.3 2.8-3.6.3-4.3 1.8-1.9 0-4.7-2.6-3.7C17.2 2.2 13.8 1 12 3z" fill="currentColor" fill-opacity=".15"/>
+                                    <path d="M8 7q1.4 1.4 0 2.8m4-4q1.5 1.5 0 3m4-1.8q-1.4 1.4 0 2.8M7.5 12q1.4 1.3 0 2.7m8.8-2.7q-1.4 1.3 0 2.7M12 11v5"/>
+                                </svg>
+                            </span>
                             <span>Books</span>
                         </button>
                     </li>
                     <li>
                         <button class="nav-item-btn" id="nav-games" type="button">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="6" y1="12" x2="10" y2="12"></line>
-                                <line x1="8" y1="10" x2="8" y2="14"></line>
-                                <line x1="15" y1="13" x2="15.01" y2="13"></line>
-                                <line x1="18" y1="11" x2="18.01" y2="11"></line>
-                                <rect x="2" y="6" width="20" height="12" rx="6"></rect>
-                            </svg>
+                            <span class="theme-icon-def">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="6" y1="12" x2="10" y2="12"></line>
+                                    <line x1="8" y1="10" x2="8" y2="14"></line>
+                                    <line x1="15" y1="13" x2="15.01" y2="13"></line>
+                                    <line x1="18" y1="11" x2="18.01" y2="11"></line>
+                                    <rect x="2" y="6" width="20" height="12" rx="6"></rect>
+                                </svg>
+                            </span>
+                            <span class="theme-icon-hw" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 8v3m0 5v.1M12 11l-2.5 1.5m5-1.5 2.5 1.5M9.5 12.5 8 10m6.5 2.5L16 10M12 3v3m-2-3h4"/>
+                                    <circle cx="12" cy="14" r="3.1" fill="currentColor" fill-opacity=".14"/>
+                                    <path d="M8.9 13 6 11 3 12v3l4 2 2.3-1.2M15.1 13l2.9-2 3 1v3l-4 2-2.3-1.2"/>
+                                    <path d="M10.5 17 9 21m5.5-4 1.5 4M9 21H7m8 0h2"/>
+                                </svg>
+                            </span>
                             <span>Games</span>
                         </button>
                     </li>
                     <li>
                         <button class="nav-item-btn" id="nav-archives" type="button">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="21 8 21 21 3 21 3 8"></polyline>
-                                <rect x="1" y="3" width="22" height="5"></rect>
-                                <line x1="10" y1="12" x2="14" y2="12"></line>
-                            </svg>
+                            <span class="theme-icon-def">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                                    <rect x="1" y="3" width="22" height="5"></rect>
+                                    <line x1="10" y1="12" x2="14" y2="12"></line>
+                                </svg>
+                            </span>
+                            <span class="theme-icon-hw" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 21V10h16v11H4z" fill="currentColor" fill-opacity=".12"/>
+                                    <path d="M2 10l10-7 10 7M7 21v-7h10v7M9.5 8h.1m4.8 0h.1"/>
+                                    <path d="M10 18q2-2 4 0"/>
+                                </svg>
+                            </span>
                             <span>Archives</span>
                         </button>
                     </li>
@@ -6914,7 +7105,17 @@
                         <!-- Halloween Tile -->
                         <div class="theme-card" data-theme-id="halloween" role="button" tabindex="0">
                             <div class="theme-card-header">
-                                <span class="theme-card-name">🎃 Halloween</span>
+                                <span class="theme-card-name">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M12 6c-1-2-3-2-4-1l1 2C6 6 3 8 3 12s3 7 9 7 9-3 9-7-3-6-6-5c-1-2-2-2-3-1z"
+                                            fill="#ff7518" stroke="#ffad55" stroke-width="1.2"/>
+                                        <path d="M12 6c0-2 1-3 3-3-.2 1.8-.8 2.7-2.5 3" stroke="#82a64b"
+                                            stroke-width="1.5" stroke-linecap="round"/>
+                                        <path d="m7 11 2 2 1-2m4 0 1 2 2-2m-9 4q4 4 8 0l-1 2H9z"
+                                            fill="#301526" stroke="#301526" stroke-linejoin="round"/>
+                                    </svg>
+                                    Halloween
+                                </span>
                                 <span class="theme-card-check">✓</span>
                             </div>
                             <div class="theme-palette-swatches">
@@ -6922,6 +7123,28 @@
                                 <span class="theme-swatch" style="background:#0d0a14;" title="Midnight Black"></span>
                                 <span class="theme-swatch" style="background:#261b38;" title="Dark Violet"></span>
                                 <span class="theme-swatch" style="background:#ff7518;" title="Pumpkin Orange"></span>
+                            </div>
+                        </div>
+
+                        <!-- Christmas Tile -->
+                        <div class="theme-card" data-theme-id="christmas" role="button" tabindex="0">
+                            <div class="theme-card-header">
+                                <span class="theme-card-name">
+                                    <svg class="theme-card-christmas-icon" viewBox="0 0 24 24" fill="none"
+                                        aria-hidden="true">
+                                        <path d="M12 2v20M3.34 7l17.32 10M3.34 17 20.66 7M9 4l3 2 3-2m-6 16 3-2 3 2M4 9l3-1 1-3m12 11-3 1-1 3M4 15l3 1 1 3m12-11-3-1-1-3"
+                                            stroke="#d9eee7" stroke-width="1.8" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                    Christmas
+                                </span>
+                                <span class="theme-card-check">✓</span>
+                            </div>
+                            <div class="theme-palette-swatches">
+                                <span class="theme-swatch" style="background:#12382f;" title="Evergreen"></span>
+                                <span class="theme-swatch" style="background:#091d19;" title="Winter Night"></span>
+                                <span class="theme-swatch" style="background:#1b493d;" title="Pine"></span>
+                                <span class="theme-swatch" style="background:#d64a45;" title="Cranberry"></span>
                             </div>
                         </div>
                     </div>
@@ -8334,6 +8557,17 @@
                         tertiary: '#261b38',
                         highlight: '#ff7518'
                     }
+                },
+                christmas: {
+                    id: 'christmas',
+                    name: 'Christmas',
+                    description: 'A festive evergreen palette with cranberry red, warm gold, and quiet snowfall.',
+                    palette: {
+                        primary: '#12382f',
+                        secondary: '#091d19',
+                        tertiary: '#1b493d',
+                        highlight: '#d64a45'
+                    }
                 }
             };
 
@@ -8530,9 +8764,12 @@
                 state.activeTheme = themeId;
 
                 const isHalloween = (themeId === 'halloween');
+                const isChristmas = (themeId === 'christmas');
                 document.documentElement.classList.toggle('theme-halloween', isHalloween);
+                document.documentElement.classList.toggle('theme-christmas', isChristmas);
                 if (document.body) {
                     document.body.classList.toggle('theme-halloween', isHalloween);
+                    document.body.classList.toggle('theme-christmas', isChristmas);
                 }
 
                 const themeBase = THEMES[themeId].palette;
