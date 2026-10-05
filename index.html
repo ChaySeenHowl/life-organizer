@@ -7063,6 +7063,414 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         });
       }
 
+      // --- Canonical Backup Serialization & Restore (Shared Source of Truth) ---
+      function blobToDataUrl(blob) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      let badBlobWarningTriggered = false;
+      function dataUrlToBlob(dataUrl) {
+        if (!dataUrl || typeof dataUrl !== 'string') return null;
+        try {
+          const parts = dataUrl.split(',');
+          if (parts.length < 2) throw new Error('Invalid dataUrl format');
+          const match = parts[0].match(/:(.*?);/);
+          const mime = match ? match[1] : 'application/octet-stream';
+          const bstr = atob(parts[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+          }
+          return new Blob([u8arr], { type: mime });
+        } catch (err) {
+          console.warn('Failed to decode dataUrl blob:', err);
+          if (!badBlobWarningTriggered) {
+            badBlobWarningTriggered = true;
+            showToast('Warning: One or more media blobs could not be decoded and were omitted.', 'info');
+          }
+          return null;
+        }
+      }
+
+      // Canonical full backup builder (Version 10 format with all pages and embedded base64 media)
+      async function buildFullBackupPayload() {
+        const rawMedia = await dbGetAll('media');
+        const exportMedia = [];
+        for (const m of rawMedia || []) {
+          const copy = { ...m };
+          if (copy.mp4Blob && copy.mp4Blob instanceof Blob) {
+            copy.mp4DataUrl = await blobToDataUrl(copy.mp4Blob);
+            delete copy.mp4Blob;
+          }
+          if (copy.imageBlob && copy.imageBlob instanceof Blob) {
+            copy.imageDataUrl = await blobToDataUrl(copy.imageBlob);
+            delete copy.imageBlob;
+          }
+          if (copy.audioBlob && copy.audioBlob instanceof Blob) {
+            copy.audioDataUrl = await blobToDataUrl(copy.audioBlob);
+            delete copy.audioBlob;
+          }
+          if (copy.docBlob && copy.docBlob instanceof Blob) {
+            copy.docDataUrl = await blobToDataUrl(copy.docBlob);
+            delete copy.docBlob;
+          }
+          exportMedia.push(copy);
+        }
+
+        const rawMovies = await dbGetAll('movies');
+        const exportMovies = [];
+        for (const mov of rawMovies || []) {
+          const copy = { ...mov };
+          if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
+            copy.imageBlobsExport = [];
+            for (const img of copy.imageBlobs) {
+              if (img.blob && img.blob instanceof Blob) {
+                const dUrl = await blobToDataUrl(img.blob);
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
+              } else if (img.dataUrl) {
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
+              }
+            }
+            delete copy.imageBlobs;
+          }
+          exportMovies.push(copy);
+        }
+
+        const rawCourses = await dbGetAll('courses');
+        const exportCourses = [];
+        for (const crs of rawCourses || []) {
+          const copy = { ...crs };
+          if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
+            copy.imageBlobsExport = [];
+            for (const img of copy.imageBlobs) {
+              if (img.blob && img.blob instanceof Blob) {
+                const dUrl = await blobToDataUrl(img.blob);
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
+              } else if (img.dataUrl) {
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
+              }
+            }
+            delete copy.imageBlobs;
+          }
+          exportCourses.push(copy);
+        }
+
+        const rawBooks = await dbGetAll('books');
+        const exportBooks = [];
+        for (const bk of rawBooks || []) {
+          const copy = { ...bk };
+          if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
+            copy.imageBlobsExport = [];
+            for (const img of copy.imageBlobs) {
+              if (img.blob && img.blob instanceof Blob) {
+                const dUrl = await blobToDataUrl(img.blob);
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
+              } else if (img.dataUrl) {
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
+              }
+            }
+            delete copy.imageBlobs;
+          }
+          exportBooks.push(copy);
+        }
+
+        const rawGames = await dbGetAll('games');
+        const exportGames = [];
+        for (const gm of rawGames || []) {
+          const copy = { ...gm };
+          if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
+            copy.imageBlobsExport = [];
+            for (const img of copy.imageBlobs) {
+              if (img.blob && img.blob instanceof Blob) {
+                const dUrl = await blobToDataUrl(img.blob);
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
+              } else if (img.dataUrl) {
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
+              }
+            }
+            delete copy.imageBlobs;
+          }
+          exportGames.push(copy);
+        }
+
+        const rawDiagrams = await dbGetAll('diagrams');
+        const exportDiagrams = [];
+        for (const diag of rawDiagrams || []) {
+          const copy = { ...diag };
+          if (copy.content) delete copy.content;
+          if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
+            copy.imageBlobsExport = [];
+            for (const img of copy.imageBlobs) {
+              if (img.blob && img.blob instanceof Blob) {
+                const dUrl = await blobToDataUrl(img.blob);
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
+              } else if (img.dataUrl) {
+                copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
+              }
+            }
+            delete copy.imageBlobs;
+          }
+          exportDiagrams.push(copy);
+        }
+
+        return {
+          version: 10,
+          exportedAt: new Date().toISOString(),
+          activeTheme: state.activeTheme || 'default',
+          colorOverrides: state.customColorOverrides || {},
+          appColors: state.appColors || DEFAULT_APP_COLORS,
+          kanbans: await dbGetAll('kanbans'),
+          buckets: await dbGetAll('buckets'),
+          subBuckets: await dbGetAll('subBuckets'),
+          tasks: await dbGetAll('tasks'),
+          tags: await dbGetAll('tags'),
+          milestones: await dbGetAll('milestones'),
+          movies: exportMovies,
+          courses: exportCourses,
+          books: exportBooks,
+          games: exportGames,
+          diagrams: exportDiagrams,
+          media: exportMedia,
+          notes: await dbGetAll('notes')
+        };
+      }
+
+      // Canonical backup restore engine (lenient validation, UTF-8 BOM strip, silence flag)
+      async function restoreBackupPayload(dataOrText, isSilent = false) {
+        badBlobWarningTriggered = false;
+        let stage = 'parse';
+        let data = dataOrText;
+
+        if (typeof dataOrText === 'string') {
+          let rawText = dataOrText;
+          if (rawText.charCodeAt(0) === 0xFEFF || rawText.startsWith('\uFEFF')) {
+            rawText = rawText.slice(1);
+          }
+          rawText = rawText.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+          data = JSON.parse(rawText);
+        }
+
+        stage = 'validate';
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          throw new Error('Invalid backup structure: expected object.');
+        }
+
+        const RECOGNIZED_KEYS = [
+          'version', 'kanbans', 'buckets', 'subBuckets', 'tasks', 'tags',
+          'milestones', 'movies', 'shows', 'courses', 'books', 'games',
+          'diagrams', 'notes', 'media', 'brainstorm', 'appColors', 'activeTheme', 'colorOverrides'
+        ];
+        const hasRecognizedKey = Object.keys(data).some(k => RECOGNIZED_KEYS.includes(k));
+        if (!hasRecognizedKey) {
+          throw new Error('This file is not a recognized Side Quests backup.');
+        }
+
+        if (typeof data.version === 'number' && data.version > 10 && !isSilent) {
+          showToast('Backup from newer app version — importing anyway', 'info');
+        }
+
+        stage = 'apply';
+        isInternalDbOperation = true;
+
+        try {
+          await dbClear('kanbans');
+          await dbClear('buckets');
+          await dbClear('subBuckets');
+          await dbClear('tasks');
+          await dbClear('tags');
+          await dbClear('milestones');
+          await dbClear('media');
+          await dbClear('notes');
+          if (db.objectStoreNames.contains('movies')) await dbClear('movies');
+          if (db.objectStoreNames.contains('courses')) await dbClear('courses');
+          if (db.objectStoreNames.contains('books')) await dbClear('books');
+          if (db.objectStoreNames.contains('games')) await dbClear('games');
+          if (db.objectStoreNames.contains('diagrams')) await dbClear('diagrams');
+          if (db.objectStoreNames.contains('settings')) await dbClear('settings');
+
+          if (data.activeTheme) {
+            state.activeTheme = data.activeTheme;
+            localStorage.setItem('sq_active_theme', data.activeTheme);
+            if (db.objectStoreNames.contains('settings')) {
+              await dbPut('settings', { key: 'theme', theme: data.activeTheme });
+            }
+          }
+          if (data.colorOverrides) {
+            state.customColorOverrides = data.colorOverrides;
+            localStorage.setItem('sq_color_overrides', JSON.stringify(data.colorOverrides));
+            if (db.objectStoreNames.contains('settings')) {
+              await dbPut('settings', { key: 'colorOverrides', overrides: data.colorOverrides });
+            }
+          }
+          if (data.appColors) {
+            state.appColors = data.appColors;
+            localStorage.setItem('sq_app_colors', JSON.stringify(data.appColors));
+            if (db.objectStoreNames.contains('settings')) {
+              await dbPut('settings', { key: 'appColors', colors: data.appColors });
+            }
+          }
+          applyTheme(state.activeTheme || 'default', true);
+
+          for (const k of data.kanbans || []) await dbPut('kanbans', k);
+          for (const b of data.buckets || []) await dbPut('buckets', b);
+          for (const s of data.subBuckets || []) await dbPut('subBuckets', s);
+          for (const t of data.tasks || []) await dbPut('tasks', t);
+          for (const tg of data.tags || []) await dbPut('tags', tg);
+          for (const m of data.milestones || []) await dbPut('milestones', m);
+
+          const importedNotes = Array.isArray(data.notes) ? data.notes : (Array.isArray(data.brainstorm) ? data.brainstorm : []);
+          for (const n of importedNotes) await dbPut('notes', n);
+
+          const importedMovies = Array.isArray(data.movies) ? data.movies : (Array.isArray(data.shows) ? data.shows : []);
+          for (const mov of importedMovies) {
+            if (mov.imageBlobsExport && Array.isArray(mov.imageBlobsExport)) {
+              mov.imageBlobs = mov.imageBlobsExport.map(img => {
+                const blob = dataUrlToBlob(img.dataUrl);
+                return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
+              });
+              delete mov.imageBlobsExport;
+            }
+            await dbPut('movies', mov);
+          }
+
+          const importedCourses = Array.isArray(data.courses) ? data.courses : [];
+          for (const crs of importedCourses) {
+            if (crs.imageBlobsExport && Array.isArray(crs.imageBlobsExport)) {
+              crs.imageBlobs = crs.imageBlobsExport.map(img => {
+                const blob = dataUrlToBlob(img.dataUrl);
+                return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
+              });
+              delete crs.imageBlobsExport;
+            }
+            await dbPut('courses', crs);
+          }
+
+          const importedBooks = Array.isArray(data.books) ? data.books : [];
+          for (const bk of importedBooks) {
+            if (bk.imageBlobsExport && Array.isArray(bk.imageBlobsExport)) {
+              bk.imageBlobs = bk.imageBlobsExport.map(img => {
+                const blob = dataUrlToBlob(img.dataUrl);
+                return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
+              });
+              delete bk.imageBlobsExport;
+            }
+            await dbPut('books', bk);
+          }
+
+          const importedGames = Array.isArray(data.games) ? data.games : [];
+          for (const gm of importedGames) {
+            if (gm.imageBlobsExport && Array.isArray(gm.imageBlobsExport)) {
+              gm.imageBlobs = gm.imageBlobsExport.map(img => {
+                const blob = dataUrlToBlob(img.dataUrl);
+                return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
+              });
+              delete gm.imageBlobsExport;
+            }
+            await dbPut('games', gm);
+          }
+
+          const importedDiagrams = Array.isArray(data.diagrams) ? data.diagrams : [];
+          for (const diag of importedDiagrams) {
+            if (diag.content) delete diag.content;
+            if (diag.imageBlobsExport && Array.isArray(diag.imageBlobsExport)) {
+              diag.imageBlobs = diag.imageBlobsExport.map(img => {
+                const blob = dataUrlToBlob(img.dataUrl);
+                return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
+              });
+              delete diag.imageBlobsExport;
+            } else if (!diag.imageBlobs) {
+              diag.imageBlobs = [];
+            }
+            if (diag.url === undefined) diag.url = null;
+            await dbPut('diagrams', diag);
+          }
+
+          const importedMedia = Array.isArray(data.media) ? data.media : [];
+          let videoCount = 0;
+          let imageCount = 0;
+
+          for (const med of importedMedia) {
+            const mt = med.mediaType || 'youtube';
+            if (med.mp4DataUrl || (mt === 'mp4' && med.dataUrl)) {
+              const blob = dataUrlToBlob(med.mp4DataUrl || med.dataUrl);
+              if (blob) med.mp4Blob = blob;
+              delete med.mp4DataUrl;
+              if (mt === 'mp4') delete med.dataUrl;
+            }
+            if (med.imageDataUrl || (mt === 'image' && med.dataUrl)) {
+              const blob = dataUrlToBlob(med.imageDataUrl || med.dataUrl);
+              if (blob) med.imageBlob = blob;
+              delete med.imageDataUrl;
+              if (mt === 'image') delete med.dataUrl;
+            }
+            if (med.audioDataUrl || ((mt === 'audio-mp3' || mt === 'audio') && med.dataUrl)) {
+              const blob = dataUrlToBlob(med.audioDataUrl || med.dataUrl);
+              if (blob) med.audioBlob = blob;
+              delete med.audioDataUrl;
+              if (mt === 'audio-mp3' || mt === 'audio') delete med.dataUrl;
+            }
+            if (med.docDataUrl || (mt.startsWith('document-') && med.dataUrl)) {
+              const blob = dataUrlToBlob(med.docDataUrl || med.dataUrl);
+              if (blob) med.docBlob = blob;
+              delete med.docDataUrl;
+              delete med.dataUrl;
+            }
+
+            if (mt === 'youtube' || mt === 'video-youtube' || mt === 'mp4' || mt === 'video-mp4') {
+              videoCount++;
+            } else if (mt === 'image') {
+              imageCount++;
+            }
+            await dbPut('media', med);
+          }
+
+          await reloadStateFromDB();
+          refreshColorPickers();
+          updateThemeUI();
+
+          state.hasLocalEdits = false;
+          localStorage.removeItem('sq_local_dirty');
+
+          if (!isSilent) {
+            const countParts = [];
+            const taskCount = (data.tasks || []).length;
+            const bucketCount = (data.buckets || []).length;
+            const gameCount = importedGames.length;
+            const movieCount = importedMovies.length;
+            const courseCount = importedCourses.length;
+            const bookCount = importedBooks.length;
+            const diagramCount = importedDiagrams.length;
+            const noteCount = importedNotes.length;
+            const milestoneCount = (data.milestones || []).length;
+
+            if (taskCount > 0) countParts.push(`${taskCount} task${taskCount === 1 ? '' : 's'}`);
+            if (bucketCount > 0) countParts.push(`${bucketCount} bucket${bucketCount === 1 ? '' : 's'}`);
+            if (milestoneCount > 0) countParts.push(`${milestoneCount} milestone${milestoneCount === 1 ? '' : 's'}`);
+            if (gameCount > 0) countParts.push(`${gameCount} game${gameCount === 1 ? '' : 's'}`);
+            if (movieCount > 0) countParts.push(`${movieCount} movie/show${movieCount === 1 ? '' : 's'}`);
+            if (courseCount > 0) countParts.push(`${courseCount} course${courseCount === 1 ? '' : 's'}`);
+            if (bookCount > 0) countParts.push(`${bookCount} book${bookCount === 1 ? '' : 's'}`);
+            if (diagramCount > 0) countParts.push(`${diagramCount} diagram${diagramCount === 1 ? '' : 's'}`);
+            if (noteCount > 0) countParts.push(`${noteCount} note${noteCount === 1 ? '' : 's'}`);
+            if (videoCount > 0) countParts.push(`${videoCount} video${videoCount === 1 ? '' : 's'}`);
+            if (imageCount > 0) countParts.push(`${imageCount} image${imageCount === 1 ? '' : 's'}`);
+
+            const countsSummary = countParts.length > 0 ? countParts.join(', ') : '0 items';
+            showToast(`Imported: ${countsSummary}`, 'success');
+          }
+
+          return { taskCount: (data.tasks || []).length };
+        } finally {
+          isInternalDbOperation = false;
+        }
+      }
+
       function resetBoardFilters() {
         state.filters.tags.clear();
         state.filters.priority.clear();
@@ -10919,414 +11327,6 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         if (btnOpenSettings) btnOpenSettings.addEventListener('click', openSettingsModal);
         if (btnCloseSettings) btnCloseSettings.addEventListener('click', closeSettingsModal);
         if (btnDoneSettings) btnDoneSettings.addEventListener('click', closeSettingsModal);
-
-        // Helper to convert Blob to DataURL for JSON backup
-        function blobToDataUrl(blob) {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(blob);
-          });
-        }
-
-        let badBlobWarningTriggered = false;
-        function dataUrlToBlob(dataUrl) {
-          if (!dataUrl || typeof dataUrl !== 'string') return null;
-          try {
-            const parts = dataUrl.split(',');
-            if (parts.length < 2) throw new Error('Invalid dataUrl format');
-            const match = parts[0].match(/:(.*?);/);
-            const mime = match ? match[1] : 'application/octet-stream';
-            const bstr = atob(parts[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) {
-              u8arr[n] = bstr.charCodeAt(n);
-            }
-            return new Blob([u8arr], { type: mime });
-          } catch (err) {
-            console.warn('Failed to decode dataUrl blob:', err);
-            if (!badBlobWarningTriggered) {
-              badBlobWarningTriggered = true;
-              showToast('Warning: One or more media blobs could not be decoded and were omitted.', 'info');
-            }
-            return null;
-          }
-        }
-
-        // Programmatic full backup builder (Version 10 format with embedded base64 media)
-        async function buildFullBackupPayload() {
-          const rawMedia = await dbGetAll('media');
-          const exportMedia = [];
-          for (const m of rawMedia || []) {
-            const copy = { ...m };
-            if (copy.mp4Blob && copy.mp4Blob instanceof Blob) {
-              copy.mp4DataUrl = await blobToDataUrl(copy.mp4Blob);
-              delete copy.mp4Blob;
-            }
-            if (copy.imageBlob && copy.imageBlob instanceof Blob) {
-              copy.imageDataUrl = await blobToDataUrl(copy.imageBlob);
-              delete copy.imageBlob;
-            }
-            if (copy.audioBlob && copy.audioBlob instanceof Blob) {
-              copy.audioDataUrl = await blobToDataUrl(copy.audioBlob);
-              delete copy.audioBlob;
-            }
-            if (copy.docBlob && copy.docBlob instanceof Blob) {
-              copy.docDataUrl = await blobToDataUrl(copy.docBlob);
-              delete copy.docBlob;
-            }
-            exportMedia.push(copy);
-          }
-
-          const rawMovies = await dbGetAll('movies');
-          const exportMovies = [];
-          for (const mov of rawMovies || []) {
-            const copy = { ...mov };
-            if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
-              copy.imageBlobsExport = [];
-              for (const img of copy.imageBlobs) {
-                if (img.blob && img.blob instanceof Blob) {
-                  const dUrl = await blobToDataUrl(img.blob);
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
-                } else if (img.dataUrl) {
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
-                }
-              }
-              delete copy.imageBlobs;
-            }
-            exportMovies.push(copy);
-          }
-
-          const rawCourses = await dbGetAll('courses');
-          const exportCourses = [];
-          for (const crs of rawCourses || []) {
-            const copy = { ...crs };
-            if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
-              copy.imageBlobsExport = [];
-              for (const img of copy.imageBlobs) {
-                if (img.blob && img.blob instanceof Blob) {
-                  const dUrl = await blobToDataUrl(img.blob);
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
-                } else if (img.dataUrl) {
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
-                }
-              }
-              delete copy.imageBlobs;
-            }
-            exportCourses.push(copy);
-          }
-
-          const rawBooks = await dbGetAll('books');
-          const exportBooks = [];
-          for (const bk of rawBooks || []) {
-            const copy = { ...bk };
-            if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
-              copy.imageBlobsExport = [];
-              for (const img of copy.imageBlobs) {
-                if (img.blob && img.blob instanceof Blob) {
-                  const dUrl = await blobToDataUrl(img.blob);
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
-                } else if (img.dataUrl) {
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
-                }
-              }
-              delete copy.imageBlobs;
-            }
-            exportBooks.push(copy);
-          }
-
-          const rawGames = await dbGetAll('games');
-          const exportGames = [];
-          for (const gm of rawGames || []) {
-            const copy = { ...gm };
-            if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
-              copy.imageBlobsExport = [];
-              for (const img of copy.imageBlobs) {
-                if (img.blob && img.blob instanceof Blob) {
-                  const dUrl = await blobToDataUrl(img.blob);
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
-                } else if (img.dataUrl) {
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
-                }
-              }
-              delete copy.imageBlobs;
-            }
-            exportGames.push(copy);
-          }
-
-          const rawDiagrams = await dbGetAll('diagrams');
-          const exportDiagrams = [];
-          for (const diag of rawDiagrams || []) {
-            const copy = { ...diag };
-            if (copy.content) delete copy.content;
-            if (copy.imageBlobs && Array.isArray(copy.imageBlobs)) {
-              copy.imageBlobsExport = [];
-              for (const img of copy.imageBlobs) {
-                if (img.blob && img.blob instanceof Blob) {
-                  const dUrl = await blobToDataUrl(img.blob);
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: dUrl });
-                } else if (img.dataUrl) {
-                  copy.imageBlobsExport.push({ id: img.id, name: img.name, dataUrl: img.dataUrl });
-                }
-              }
-              delete copy.imageBlobs;
-            }
-            exportDiagrams.push(copy);
-          }
-
-          return {
-            version: 10,
-            exportedAt: new Date().toISOString(),
-            activeTheme: state.activeTheme || 'default',
-            colorOverrides: state.customColorOverrides || {},
-            appColors: state.appColors || DEFAULT_APP_COLORS,
-            kanbans: await dbGetAll('kanbans'),
-            buckets: await dbGetAll('buckets'),
-            subBuckets: await dbGetAll('subBuckets'),
-            tasks: await dbGetAll('tasks'),
-            tags: await dbGetAll('tags'),
-            milestones: await dbGetAll('milestones'),
-            movies: exportMovies,
-            courses: exportCourses,
-            books: exportBooks,
-            games: exportGames,
-            diagrams: exportDiagrams,
-            media: exportMedia,
-            notes: await dbGetAll('notes')
-          };
-        }
-
-        // Programmatic backup restore engine (lenient validation, UTF-8 BOM strip, silence flag)
-        async function restoreBackupPayload(dataOrText, isSilent = false) {
-          badBlobWarningTriggered = false;
-          let stage = 'parse';
-          let data = dataOrText;
-
-          if (typeof dataOrText === 'string') {
-            let rawText = dataOrText;
-            if (rawText.charCodeAt(0) === 0xFEFF || rawText.startsWith('\uFEFF')) {
-              rawText = rawText.slice(1);
-            }
-            rawText = rawText.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
-            data = JSON.parse(rawText);
-          }
-
-          stage = 'validate';
-          if (!data || typeof data !== 'object' || Array.isArray(data)) {
-            throw new Error('Invalid backup structure: expected object.');
-          }
-
-          const RECOGNIZED_KEYS = [
-            'version', 'kanbans', 'buckets', 'subBuckets', 'tasks', 'tags',
-            'milestones', 'movies', 'shows', 'courses', 'books', 'games',
-            'diagrams', 'notes', 'media', 'brainstorm', 'appColors', 'activeTheme', 'colorOverrides'
-          ];
-          const hasRecognizedKey = Object.keys(data).some(k => RECOGNIZED_KEYS.includes(k));
-          if (!hasRecognizedKey) {
-            throw new Error('This file is not a recognized Side Quests backup.');
-          }
-
-          if (typeof data.version === 'number' && data.version > 10 && !isSilent) {
-            showToast('Backup from newer app version — importing anyway', 'info');
-          }
-
-          stage = 'apply';
-          isInternalDbOperation = true;
-
-          try {
-            await dbClear('kanbans');
-            await dbClear('buckets');
-            await dbClear('subBuckets');
-            await dbClear('tasks');
-            await dbClear('tags');
-            await dbClear('milestones');
-            await dbClear('media');
-            await dbClear('notes');
-            if (db.objectStoreNames.contains('movies')) await dbClear('movies');
-            if (db.objectStoreNames.contains('courses')) await dbClear('courses');
-            if (db.objectStoreNames.contains('books')) await dbClear('books');
-            if (db.objectStoreNames.contains('games')) await dbClear('games');
-            if (db.objectStoreNames.contains('diagrams')) await dbClear('diagrams');
-            if (db.objectStoreNames.contains('settings')) await dbClear('settings');
-
-            if (data.activeTheme) {
-              state.activeTheme = data.activeTheme;
-              localStorage.setItem('sq_active_theme', data.activeTheme);
-              if (db.objectStoreNames.contains('settings')) {
-                await dbPut('settings', { key: 'theme', theme: data.activeTheme });
-              }
-            }
-            if (data.colorOverrides) {
-              state.customColorOverrides = data.colorOverrides;
-              localStorage.setItem('sq_color_overrides', JSON.stringify(data.colorOverrides));
-              if (db.objectStoreNames.contains('settings')) {
-                await dbPut('settings', { key: 'colorOverrides', overrides: data.colorOverrides });
-              }
-            }
-            if (data.appColors) {
-              state.appColors = data.appColors;
-              localStorage.setItem('sq_app_colors', JSON.stringify(data.appColors));
-              if (db.objectStoreNames.contains('settings')) {
-                await dbPut('settings', { key: 'appColors', colors: data.appColors });
-              }
-            }
-            applyTheme(state.activeTheme || 'default', true);
-
-            for (const k of data.kanbans || []) await dbPut('kanbans', k);
-            for (const b of data.buckets || []) await dbPut('buckets', b);
-            for (const s of data.subBuckets || []) await dbPut('subBuckets', s);
-            for (const t of data.tasks || []) await dbPut('tasks', t);
-            for (const tg of data.tags || []) await dbPut('tags', tg);
-            for (const m of data.milestones || []) await dbPut('milestones', m);
-
-            const importedNotes = Array.isArray(data.notes) ? data.notes : (Array.isArray(data.brainstorm) ? data.brainstorm : []);
-            for (const n of importedNotes) await dbPut('notes', n);
-
-            const importedMovies = Array.isArray(data.movies) ? data.movies : (Array.isArray(data.shows) ? data.shows : []);
-            for (const mov of importedMovies) {
-              if (mov.imageBlobsExport && Array.isArray(mov.imageBlobsExport)) {
-                mov.imageBlobs = mov.imageBlobsExport.map(img => {
-                  const blob = dataUrlToBlob(img.dataUrl);
-                  return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
-                });
-                delete mov.imageBlobsExport;
-              }
-              await dbPut('movies', mov);
-            }
-
-            const importedCourses = Array.isArray(data.courses) ? data.courses : [];
-            for (const crs of importedCourses) {
-              if (crs.imageBlobsExport && Array.isArray(crs.imageBlobsExport)) {
-                crs.imageBlobs = crs.imageBlobsExport.map(img => {
-                  const blob = dataUrlToBlob(img.dataUrl);
-                  return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
-                });
-                delete crs.imageBlobsExport;
-              }
-              await dbPut('courses', crs);
-            }
-
-            const importedBooks = Array.isArray(data.books) ? data.books : [];
-            for (const bk of importedBooks) {
-              if (bk.imageBlobsExport && Array.isArray(bk.imageBlobsExport)) {
-                bk.imageBlobs = bk.imageBlobsExport.map(img => {
-                  const blob = dataUrlToBlob(img.dataUrl);
-                  return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
-                });
-                delete bk.imageBlobsExport;
-              }
-              await dbPut('books', bk);
-            }
-
-            const importedGames = Array.isArray(data.games) ? data.games : [];
-            for (const gm of importedGames) {
-              if (gm.imageBlobsExport && Array.isArray(gm.imageBlobsExport)) {
-                gm.imageBlobs = gm.imageBlobsExport.map(img => {
-                  const blob = dataUrlToBlob(img.dataUrl);
-                  return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
-                });
-                delete gm.imageBlobsExport;
-              }
-              await dbPut('games', gm);
-            }
-
-            const importedDiagrams = Array.isArray(data.diagrams) ? data.diagrams : [];
-            for (const diag of importedDiagrams) {
-              if (diag.content) delete diag.content;
-              if (diag.imageBlobsExport && Array.isArray(diag.imageBlobsExport)) {
-                diag.imageBlobs = diag.imageBlobsExport.map(img => {
-                  const blob = dataUrlToBlob(img.dataUrl);
-                  return { id: img.id || generateId(), name: img.name || 'image', ...(blob ? { blob } : {}) };
-                });
-                delete diag.imageBlobsExport;
-              } else if (!diag.imageBlobs) {
-                diag.imageBlobs = [];
-              }
-              if (diag.url === undefined) diag.url = null;
-              await dbPut('diagrams', diag);
-            }
-
-            const importedMedia = Array.isArray(data.media) ? data.media : [];
-            let videoCount = 0;
-            let imageCount = 0;
-
-            for (const med of importedMedia) {
-              const mt = med.mediaType || 'youtube';
-              if (med.mp4DataUrl || (mt === 'mp4' && med.dataUrl)) {
-                const blob = dataUrlToBlob(med.mp4DataUrl || med.dataUrl);
-                if (blob) med.mp4Blob = blob;
-                delete med.mp4DataUrl;
-                if (mt === 'mp4') delete med.dataUrl;
-              }
-              if (med.imageDataUrl || (mt === 'image' && med.dataUrl)) {
-                const blob = dataUrlToBlob(med.imageDataUrl || med.dataUrl);
-                if (blob) med.imageBlob = blob;
-                delete med.imageDataUrl;
-                if (mt === 'image') delete med.dataUrl;
-              }
-              if (med.audioDataUrl || ((mt === 'audio-mp3' || mt === 'audio') && med.dataUrl)) {
-                const blob = dataUrlToBlob(med.audioDataUrl || med.dataUrl);
-                if (blob) med.audioBlob = blob;
-                delete med.audioDataUrl;
-                if (mt === 'audio-mp3' || mt === 'audio') delete med.dataUrl;
-              }
-              if (med.docDataUrl || (mt.startsWith('document-') && med.dataUrl)) {
-                const blob = dataUrlToBlob(med.docDataUrl || med.dataUrl);
-                if (blob) med.docBlob = blob;
-                delete med.docDataUrl;
-                delete med.dataUrl;
-              }
-
-              if (mt === 'youtube' || mt === 'video-youtube' || mt === 'mp4' || mt === 'video-mp4') {
-                videoCount++;
-              } else if (mt === 'image') {
-                imageCount++;
-              }
-              await dbPut('media', med);
-            }
-
-            await reloadStateFromDB();
-            refreshColorPickers();
-            updateThemeUI();
-
-            state.hasLocalEdits = false;
-            localStorage.removeItem('sq_local_dirty');
-
-            if (!isSilent) {
-              const countParts = [];
-              const taskCount = (data.tasks || []).length;
-              const bucketCount = (data.buckets || []).length;
-              const gameCount = importedGames.length;
-              const movieCount = importedMovies.length;
-              const courseCount = importedCourses.length;
-              const bookCount = importedBooks.length;
-              const diagramCount = importedDiagrams.length;
-              const noteCount = importedNotes.length;
-              const milestoneCount = (data.milestones || []).length;
-
-              if (taskCount > 0) countParts.push(`${taskCount} task${taskCount === 1 ? '' : 's'}`);
-              if (bucketCount > 0) countParts.push(`${bucketCount} bucket${bucketCount === 1 ? '' : 's'}`);
-              if (milestoneCount > 0) countParts.push(`${milestoneCount} milestone${milestoneCount === 1 ? '' : 's'}`);
-              if (gameCount > 0) countParts.push(`${gameCount} game${gameCount === 1 ? '' : 's'}`);
-              if (movieCount > 0) countParts.push(`${movieCount} movie/show${movieCount === 1 ? '' : 's'}`);
-              if (courseCount > 0) countParts.push(`${courseCount} course${courseCount === 1 ? '' : 's'}`);
-              if (bookCount > 0) countParts.push(`${bookCount} book${bookCount === 1 ? '' : 's'}`);
-              if (diagramCount > 0) countParts.push(`${diagramCount} diagram${diagramCount === 1 ? '' : 's'}`);
-              if (noteCount > 0) countParts.push(`${noteCount} note${noteCount === 1 ? '' : 's'}`);
-              if (videoCount > 0) countParts.push(`${videoCount} video${videoCount === 1 ? '' : 's'}`);
-              if (imageCount > 0) countParts.push(`${imageCount} image${imageCount === 1 ? '' : 's'}`);
-
-              const countsSummary = countParts.length > 0 ? countParts.join(', ') : '0 items';
-              showToast(`Imported: ${countsSummary}`, 'success');
-            }
-
-            return { taskCount: (data.tasks || []).length };
-          } finally {
-            isInternalDbOperation = false;
-          }
-        }
 
         if (btnExportBackup) {
           btnExportBackup.addEventListener('click', async () => {
@@ -18212,7 +18212,8 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       }
 
       // --- CHUNKED UPLOAD SESSION (~5MB CHUNKS, MULTIPLE OF 320 KIB) ---
-      async function uploadViaChunkedSession(fileName, fileBytes, onProgress) {
+      async function uploadViaChunkedSession(fileName, fileBytes, onProgress, stageNotifier) {
+        if (stageNotifier) stageNotifier('session');
         const sessionUrl = `https://graph.microsoft.com/v1.0/me/drive/root:/Side%20Quests/${encodeURIComponent(fileName)}:/createUploadSession`;
         const sessionRes = await fetchWithGraphAuth(sessionUrl, {
           method: 'POST',
@@ -18231,6 +18232,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         }
 
         const { uploadUrl } = await sessionRes.json();
+        if (stageNotifier) stageNotifier('chunks');
         const total = fileBytes.byteLength;
         const CHUNK_SIZE = 16 * 327680; // exactly 5,242,880 bytes (5 MiB, multiple of 320 KiB)
         let offset = 0;
@@ -18271,13 +18273,13 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         return finalItem;
       }
 
-      async function uploadViaChunkedSessionWithRetry(fileName, fileBytes, onProgress) {
+      async function uploadViaChunkedSessionWithRetry(fileName, fileBytes, onProgress, stageNotifier) {
         try {
-          return await uploadViaChunkedSession(fileName, fileBytes, onProgress);
+          return await uploadViaChunkedSession(fileName, fileBytes, onProgress, stageNotifier);
         } catch (err) {
           if (err.message.includes('409') || err.message.includes('416')) {
             logSyncEvent(`Restarting upload session for ${fileName} after ${err.message}`);
-            return await uploadViaChunkedSession(fileName, fileBytes, onProgress);
+            return await uploadViaChunkedSession(fileName, fileBytes, onProgress, stageNotifier);
           }
           throw err;
         }
@@ -18293,56 +18295,60 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       }
 
       // --- DAILY SNAPSHOT & PRUNING ENGINE ---
-      async function handleDailySnapshotAndPruning(fileBytes) {
+      async function handleDailySnapshot(fileBytes) {
         const todayStr = getSaoPauloDateStr();
         const snapshotName = `backup-${todayStr}.json`;
 
         // Check children of Side Quests folder
         const listRes = await fetchWithGraphAuth('https://graph.microsoft.com/v1.0/me/drive/root:/Side%20Quests/children?$select=id,name,lastModifiedDateTime');
-        if (!listRes.ok) return;
+        if (!listRes.ok) {
+          const err = await listRes.text();
+          throw new Error(`Failed to check snapshots: ${err}`);
+        }
 
         const listData = await listRes.json();
         const children = listData.value || [];
         const existingSnapshots = children.filter(c => /^backup-\d{4}-\d{2}-\d{2}\.json$/.test(c.name));
-
         const hasToday = existingSnapshots.some(s => s.name === snapshotName);
 
         if (!hasToday) {
           logSyncEvent(`Uploading daily snapshot: ${snapshotName}`);
           await uploadViaChunkedSessionWithRetry(snapshotName, fileBytes);
           logSyncEvent(`Daily snapshot created: ${snapshotName}`);
+        }
+      }
 
-          // Refresh snapshot list for pruning
-          existingSnapshots.push({ name: snapshotName, id: 'latest' });
+      async function pruneOldSnapshots() {
+        if (odHasPrunedThisSession) return;
+        odHasPrunedThisSession = true;
+
+        const refreshRes = await fetchWithGraphAuth('https://graph.microsoft.com/v1.0/me/drive/root:/Side%20Quests/children?$select=id,name');
+        if (!refreshRes.ok) {
+          const err = await refreshRes.text();
+          throw new Error(`Failed to list snapshots for pruning: ${err}`);
         }
 
-        // Pruning older snapshots beyond the newest 30 (max once per session)
-        if (!odHasPrunedThisSession) {
-          odHasPrunedThisSession = true;
+        const freshData = await refreshRes.json();
+        const snapshots = (freshData.value || [])
+          .filter(c => /^backup-\d{4}-\d{2}-\d{2}\.json$/.test(c.name))
+          .sort((a, b) => b.name.localeCompare(a.name)); // newest first
 
-          // Re-fetch accurate items for deletion
-          const refreshRes = await fetchWithGraphAuth('https://graph.microsoft.com/v1.0/me/drive/root:/Side%20Quests/children?$select=id,name');
-          if (refreshRes.ok) {
-            const freshData = await refreshRes.json();
-            const snapshots = (freshData.value || [])
-              .filter(c => /^backup-\d{4}-\d{2}-\d{2}\.json$/.test(c.name))
-              .sort((a, b) => b.name.localeCompare(a.name)); // newest first
-
-            if (snapshots.length > 30) {
-              const toDelete = snapshots.slice(30);
-              for (const item of toDelete) {
-                try {
-                  const delRes = await fetchWithGraphAuth(`https://graph.microsoft.com/v1.0/me/drive/items/${item.id}`, { method: 'DELETE' });
-                  if (delRes.ok || delRes.status === 204 || delRes.status === 404) {
-                    logSyncEvent(`Pruned older snapshot: ${item.name}`);
-                  }
-                } catch (delErr) {
-                  console.warn(`Could not prune ${item.name}:`, delErr);
-                }
-              }
+        if (snapshots.length > 30) {
+          const toDelete = snapshots.slice(30);
+          for (const item of toDelete) {
+            const delRes = await fetchWithGraphAuth(`https://graph.microsoft.com/v1.0/me/drive/items/${item.id}`, { method: 'DELETE' });
+            if (!delRes.ok && delRes.status !== 204 && delRes.status !== 404) {
+              const err = await delRes.text();
+              throw new Error(`Failed to delete old snapshot ${item.name}: ${err}`);
             }
+            logSyncEvent(`Pruned older snapshot: ${item.name}`);
           }
         }
+      }
+
+      async function handleDailySnapshotAndPruning(fileBytes) {
+        await handleDailySnapshot(fileBytes);
+        await pruneOldSnapshots();
       }
 
       // --- CONFLICT DIALOG & RESOLUTION ---
@@ -18380,8 +18386,18 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 
         odIsUploadInProgress = true;
         setSyncState('Syncing…');
+        let currentStage = 'build';
 
         try {
+          // Stage: build (payload assembly)
+          currentStage = 'build';
+          const backupObj = await buildFullBackupPayload();
+          const jsonStr = JSON.stringify(backupObj);
+          const encoder = new TextEncoder();
+          const fileBytes = encoder.encode(jsonStr);
+
+          // Stage: folder (ensure Side Quests folder)
+          currentStage = 'folder';
           await ensureTargetFolderExists();
 
           // Check remote metadata for conflicts before overwriting
@@ -18413,22 +18429,27 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
             }
           }
 
-          // Build exact backup payload
-          const backupObj = await buildFullBackupPayload();
-          const jsonStr = JSON.stringify(backupObj);
-          const encoder = new TextEncoder();
-          const fileBytes = encoder.encode(jsonStr);
-
-          // Upload backup.json with progress
+          // Stage: session & chunks (backup.json upload)
+          currentStage = 'session';
           const uploadedItem = await uploadViaChunkedSessionWithRetry('backup.json', fileBytes, (pct) => {
             const stateLabel = `Uploading… ${pct}%`;
             const statusText = document.getElementById('od-status-text');
             const badge = document.getElementById('od-state-badge');
             if (statusText) statusText.textContent = stateLabel;
             if (badge) badge.textContent = stateLabel;
+          }, (stageName) => {
+            currentStage = stageName;
           });
 
-          // Update local markers on success
+          // Stage: snapshot (daily snapshot)
+          currentStage = 'snapshot';
+          await handleDailySnapshot(fileBytes);
+
+          // Stage: prune (delete old snapshots)
+          currentStage = 'prune';
+          await pruneOldSnapshots();
+
+          // Successful upload: update metadata & Last Cloud Sync only now
           if (uploadedItem && uploadedItem.lastModifiedDateTime) {
             const cloudModified = new Date(uploadedItem.lastModifiedDateTime).getTime();
             localStorage.setItem('sq_od_last_cloud_seen_at', String(cloudModified));
@@ -18439,20 +18460,13 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           state.hasLocalEdits = false;
 
           logSyncEvent('Uploaded backup.json to OneDrive');
-
-          // Handle Daily Snapshot & Retention
-          try {
-            await handleDailySnapshotAndPruning(fileBytes);
-          } catch (snapErr) {
-            console.warn('Daily snapshot warning:', snapErr);
-          }
-
           setSyncState('Connected');
           showToast('OneDrive sync complete', 'success');
         } catch (err) {
-          console.error('OneDrive upload sync failed:', err);
-          logSyncEvent(`Upload error: ${err.message}`);
-          showToast(`OneDrive sync error: ${err.message}`, 'error');
+          console.error(`OneDrive upload failed at stage ${currentStage}:`, err);
+          const errMsg = err?.message || String(err);
+          logSyncEvent(`OneDrive upload failed at ${currentStage}: ${errMsg}`);
+          showToast(`OneDrive upload failed at ${currentStage}: ${errMsg}`, 'error');
           setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
         } finally {
           odIsUploadInProgress = false;
