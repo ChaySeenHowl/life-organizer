@@ -5652,6 +5652,13 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           <!-- Status Card -->
           <div id="od-status-card" style="background:var(--surface-inset); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:10px 12px; display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem;">
+              <span style="color:var(--text-muted);">Origem atual:</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <code id="od-current-origin" style="font-family:ui-monospace, monospace; font-size:0.75rem; background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; user-select:all; cursor:pointer;" title="Clique para copiar">file:// — arquivo local</code>
+                <button type="button" class="sq-btn sq-btn-icon sq-btn-sm" id="btn-copy-origin" title="Copiar origem" style="padding:2px 6px; font-size:0.72rem; line-height:1;">📋</button>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem;">
               <span style="color:var(--text-muted);">Account:</span>
               <span id="od-account-email" style="font-weight:600; color:var(--text-heading, #fff); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Not connected</span>
             </div>
@@ -5663,6 +5670,11 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
               <span style="color:var(--text-muted);">State:</span>
               <span id="od-status-text" style="font-weight:600; color:var(--text-muted);">Disconnected</span>
             </div>
+          </div>
+
+          <!-- Persistent file:// protocol warning banner -->
+          <div id="od-file-protocol-warning" style="display:none; padding:8px 12px; background:rgba(248, 81, 73, 0.15); border:1px solid rgba(248, 81, 73, 0.4); border-radius:var(--radius-sm); font-size:0.78rem; color:#ff7b72; line-height:1.45; margin-bottom:10px;">
+            ⚠ App aberto como arquivo local — o OneDrive não aceita conexões nesta origem. Sirva o app via http://localhost e registre a origem no Entra ID.
           </div>
 
           <!-- Action Buttons -->
@@ -5735,47 +5747,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
     </div>
   </div>
 
-  <!-- ONEDRIVE DEVICE CODE MODAL -->
-  <div class="modal-backdrop" id="modal-od-device-code">
-    <div class="modal-dialog modal-dialog-small" style="max-width: 440px;">
-      <div class="modal-header">
-        <h3 class="modal-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
-          Connect to OneDrive
-        </h3>
-        <button type="button" class="sq-btn sq-btn-icon" id="btn-close-od-modal">✕</button>
-      </div>
-      <div class="modal-body" style="gap:14px; text-align:center;">
-        <p style="margin:0; font-size:0.88rem; color:var(--text); line-height:1.45;">
-          Open this link and enter the code:
-        </p>
 
-        <div style="background:var(--surface-inset); border:2px dashed var(--accent); border-radius:var(--radius-md); padding:16px 12px; display:flex; flex-direction:column; align-items:center; gap:10px;">
-          <div id="od-user-code-display" style="font-family:ui-monospace, monospace; font-size:1.65rem; font-weight:700; letter-spacing:0.12em; color:var(--accent); user-select:all;">
-            ---- ----
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button type="button" class="sq-btn sq-btn-sm" id="btn-od-copy-code">Copy Code</button>
-            <a href="#" target="_blank" rel="noopener noreferrer" class="sq-btn sq-btn-sm sq-btn-primary" id="btn-od-open-link">
-              Open Link ↗
-            </a>
-          </div>
-        </div>
-
-        <div style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:6px;">
-          <span>Code expires in:</span>
-          <span id="od-code-countdown" style="font-weight:700; color:var(--text);">15:00</span>
-        </div>
-
-        <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">
-          Waiting for authorization… This dialog will automatically close once confirmed.
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="sq-btn" id="btn-od-cancel-auth">Cancel</button>
-      </div>
-    </div>
-  </div>
 
   <!-- ONEDRIVE SYNC CONFLICT MODAL -->
   <div class="modal-backdrop" id="modal-od-conflict">
@@ -6585,6 +6557,39 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
     // Robust App Script with isolated try/catch modules and comprehensive error protection
     (function () {
       'use strict';
+
+      // --- Early OAuth Popup / Redirect Handler ---
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const stateParam = urlParams.get('state');
+        const errorParam = urlParams.get('error');
+        const errorDesc = urlParams.get('error_description');
+
+        if (code || stateParam || errorParam) {
+          if (window.opener && window.opener !== window) {
+            try {
+              window.opener.postMessage({
+                type: 'onedrive-auth',
+                code,
+                state: stateParam,
+                error: errorParam,
+                error_description: errorDesc
+              }, window.location.origin);
+            } catch (postErr) {
+              console.error('Failed to postMessage to opener:', postErr);
+            }
+            window.close();
+            return; // Terminate execution immediately inside popup
+          } else {
+            // Clean up the URL if opened directly in main tab
+            const cleanUrl = window.location.origin + window.location.pathname + window.location.hash;
+            window.history.replaceState({}, document.title, cleanUrl);
+          }
+        }
+      } catch (oauthErr) {
+        console.warn('OAuth early check error:', oauthErr);
+      }
 
       // --- Utility Helpers ---
       function generateId() {
@@ -17878,16 +17883,83 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       const OD_CONFIG = {
         clientId: 'a55183a8-c49e-402a-9cfc-8e6a71fa8248',
         scopes: 'Files.ReadWrite.All offline_access User.Read',
-        deviceCodeEndpoint: 'https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode',
+        authorizeEndpoint: 'https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize',
         tokenEndpoint: 'https://login.microsoftonline.com/consumers/oauth2/v2.0/token',
         folderName: 'Side Quests'
       };
 
+      function getRedirectUri() {
+        const origin = window.location.origin || '';
+        let pathname = window.location.pathname || '/';
+        if (!pathname.endsWith('/')) pathname += '/';
+        return origin + pathname;
+      }
+
+      function getCurrentOriginDisplay() {
+        if (window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null') {
+          return 'file:// — arquivo local';
+        }
+        return getRedirectUri();
+      }
+
+      function bufferToBase64Url(buffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary)
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+      }
+
+      function generateCodeVerifier() {
+        const array = new Uint8Array(64);
+        window.crypto.getRandomValues(array);
+        return bufferToBase64Url(array);
+      }
+
+      async function generateCodeChallenge(verifier) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(verifier);
+        const digest = await window.crypto.subtle.digest('SHA-256', data);
+        return bufferToBase64Url(digest);
+      }
+
+      function generateRandomState() {
+        const array = new Uint8Array(32);
+        window.crypto.getRandomValues(array);
+        return bufferToBase64Url(array);
+      }
+
+      function getCorsErrorMessage() {
+        const originStr = getCurrentOriginDisplay();
+        return `Falha de conexão com a Microsoft (CORS). Origem atual: ${originStr}. Se o app está aberto como arquivo local (file://), a Microsoft bloqueia as chamadas. Abra o app via http://localhost (servidor local) e registre essa origem como plataforma 'Single-page application' no Entra ID.`;
+      }
+
+      function isNetworkOrCorsError(err) {
+        if (!err) return false;
+        const msg = (err.message || String(err)).toLowerCase();
+        return err.name === 'TypeError' ||
+          msg.includes('failed to fetch') ||
+          msg.includes('networkerror') ||
+          msg.includes('network request failed') ||
+          msg.includes('cors') ||
+          msg.includes('cross-origin') ||
+          msg.includes('load failed');
+      }
+
+      async function showCorsErrorNotification() {
+        const corsMsg = getCorsErrorMessage();
+        showToast(corsMsg, 'error');
+        await showConfirm('Falha de Conexão com a Microsoft (CORS)', corsMsg, false, '', 'Entendi');
+      }
+
       let odRateLimitUntil = 0;
       let odUploadDebounceTimer = null;
       let odIsUploadInProgress = false;
-      let odAuthPollIntervalTimer = null;
-      let odAuthCountdownTimer = null;
       let odHasPrunedThisSession = false;
 
       // Local State & Markers
@@ -17995,6 +18067,16 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           if (autoSyncLabel) autoSyncLabel.textContent = isAuto ? 'ON' : 'OFF';
         }
 
+        const originEl = document.getElementById('od-current-origin');
+        if (originEl) {
+          originEl.textContent = getCurrentOriginDisplay();
+        }
+
+        const fileWarning = document.getElementById('od-file-protocol-warning');
+        if (fileWarning) {
+          fileWarning.style.display = (window.location.protocol === 'file:') ? 'block' : 'none';
+        }
+
         renderSyncLogUI();
 
         if (!isOneDriveConnected()) {
@@ -18022,11 +18104,20 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           scope: OD_CONFIG.scopes
         });
 
-        const res = await fetch(OD_CONFIG.tokenEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: body.toString()
-        });
+        let res;
+        try {
+          res = await fetch(OD_CONFIG.tokenEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+          });
+        } catch (fetchErr) {
+          if (isNetworkOrCorsError(fetchErr)) {
+            await showCorsErrorNotification();
+            throw new Error(getCorsErrorMessage());
+          }
+          throw fetchErr;
+        }
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -18455,161 +18546,239 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         }, 10000);
       }
 
-      // --- DEVICE CODE FLOW AUTHENTICATION ---
-      const modalDeviceCode = document.getElementById('modal-od-device-code');
-      const odUserCodeDisplay = document.getElementById('od-user-code-display');
-      const btnOdCopyCode = document.getElementById('btn-od-copy-code');
-      const btnOdOpenLink = document.getElementById('btn-od-open-link');
-      const odCodeCountdown = document.getElementById('od-code-countdown');
-      const btnOdCancelAuth = document.getElementById('btn-od-cancel-auth');
-      const btnCloseOdModal = document.getElementById('btn-close-od-modal');
+      // --- AUTHORIZATION CODE + PKCE FLOW (POPUP) ---
+      let odActiveAuthPopup = null;
+      let odActivePopupPollTimer = null;
+      let odActiveAuthTimeoutTimer = null;
+      let odActiveMessageListener = null;
 
-      function closeDeviceCodeModal() {
-        if (odAuthPollIntervalTimer) {
-          clearInterval(odAuthPollIntervalTimer);
-          odAuthPollIntervalTimer = null;
+      function cleanupAuthListeners() {
+        if (odActivePopupPollTimer) {
+          clearInterval(odActivePopupPollTimer);
+          odActivePopupPollTimer = null;
         }
-        if (odAuthCountdownTimer) {
-          clearInterval(odAuthCountdownTimer);
-          odAuthCountdownTimer = null;
+        if (odActiveAuthTimeoutTimer) {
+          clearTimeout(odActiveAuthTimeoutTimer);
+          odActiveAuthTimeoutTimer = null;
         }
-        if (modalDeviceCode) modalDeviceCode.classList.remove('open');
+        if (odActiveMessageListener) {
+          window.removeEventListener('message', odActiveMessageListener);
+          odActiveMessageListener = null;
+        }
       }
 
-      async function initiateDeviceCodeFlow() {
+      async function initiatePkceAuthFlow() {
+        if (window.location.protocol === 'file:') {
+          await showCorsErrorNotification();
+          return;
+        }
+
+        cleanupAuthListeners();
+
         try {
-          setSyncState('Syncing…');
-          const body = new URLSearchParams({
+          const codeVerifier = generateCodeVerifier();
+          const codeChallenge = await generateCodeChallenge(codeVerifier);
+          const stateToken = generateRandomState();
+
+          sessionStorage.setItem('sq_od_pkce_verifier', codeVerifier);
+          sessionStorage.setItem('sq_od_oauth_state', stateToken);
+
+          const redirectUri = getRedirectUri();
+          const params = new URLSearchParams({
             client_id: OD_CONFIG.clientId,
-            scope: OD_CONFIG.scopes
+            response_type: 'code',
+            redirect_uri: redirectUri,
+            response_mode: 'query',
+            scope: OD_CONFIG.scopes,
+            code_challenge: codeChallenge,
+            code_challenge_method: 'S256',
+            state: stateToken,
+            prompt: 'select_account'
           });
 
-          const res = await fetch(OD_CONFIG.deviceCodeEndpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body.toString()
-          });
+          const authUrl = `${OD_CONFIG.authorizeEndpoint}?${params.toString()}`;
 
-          if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`Device code request failed: ${err}`);
+          const width = 500;
+          const height = 700;
+          const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - width) / 2));
+          const top = Math.max(0, Math.round(window.screenY + (window.outerHeight - height) / 2));
+
+          const popup = window.open(
+            authUrl,
+            'onedrive_auth_popup',
+            `width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no,menubar=no`
+          );
+
+          if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+            showToast('Pop-up bloqueado pelo navegador — permita pop-ups para este site e tente de novo', 'error');
+            setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
+            return;
           }
 
-          const data = await res.json();
-          const { device_code, user_code, expires_in } = data;
-          const verifyUri = data.verification_uri || data.verification_url || 'https://www.microsoft.com/link';
-          let pollInterval = (data.interval || 5) * 1000;
+          odActiveAuthPopup = popup;
+          setSyncState('Syncing…');
+          logSyncEvent('Aguardando autorização no pop-up da Microsoft…');
 
-          if (odUserCodeDisplay) odUserCodeDisplay.textContent = user_code;
-          if (btnOdOpenLink) btnOdOpenLink.href = verifyUri;
+          let authResolved = false;
 
-          let remainingSeconds = expires_in || 900;
-          const updateCountdown = () => {
-            const m = Math.floor(remainingSeconds / 60);
-            const s = remainingSeconds % 60;
-            if (odCodeCountdown) odCodeCountdown.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-          };
-          updateCountdown();
+          // Message listener for popup response
+          odActiveMessageListener = (event) => {
+            if (event.origin !== window.location.origin) return;
+            if (!event.data || event.data.type !== 'onedrive-auth') return;
 
-          if (odAuthCountdownTimer) clearInterval(odAuthCountdownTimer);
-          odAuthCountdownTimer = setInterval(() => {
-            remainingSeconds--;
-            if (remainingSeconds <= 0) {
-              closeDeviceCodeModal();
-              showToast('Device code expired — please try again', 'error');
-              logSyncEvent('Device code expired');
-              setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
-            } else {
-              updateCountdown();
-            }
-          }, 1000);
+            authResolved = true;
+            cleanupAuthListeners();
 
-          if (modalDeviceCode) modalDeviceCode.classList.add('open');
-
-          // Polling Loop
-          const pollToken = async () => {
             try {
-              const pollBody = new URLSearchParams({
-                grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-                client_id: OD_CONFIG.clientId,
-                device_code
-              });
+              if (popup && !popup.closed) popup.close();
+            } catch (e) {}
 
-              const tokenRes = await fetch(OD_CONFIG.tokenEndpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: pollBody.toString()
-              });
+            const { code, state: returnedState, error, error_description } = event.data;
 
-              const tokenData = await tokenRes.json().catch(() => ({}));
-
-              if (tokenRes.ok && tokenData.access_token) {
-                closeDeviceCodeModal();
-
-                localStorage.setItem('sq_od_access_token', tokenData.access_token);
-                if (tokenData.refresh_token) {
-                  localStorage.setItem('sq_od_refresh_token', tokenData.refresh_token);
-                }
-                const expiresAt = Date.now() + ((tokenData.expires_in || 3600) * 1000);
-                localStorage.setItem('sq_od_expires_at', String(expiresAt));
-
-                // Fetch account profile
-                try {
-                  const meRes = await fetch('https://graph.microsoft.com/v1.0/me', {
-                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
-                  });
-                  if (meRes.ok) {
-                    const meData = await meRes.json();
-                    const email = meData.mail || meData.userPrincipalName || meData.displayName || 'Microsoft User';
-                    localStorage.setItem('sq_od_account_email', email);
-                  }
-                } catch (meErr) {
-                  console.warn('Could not fetch user profile:', meErr);
-                }
-
-                logSyncEvent(`Connected as ${localStorage.getItem('sq_od_account_email') || 'user'}`);
-                showToast(`Connected to OneDrive!`, 'success');
-                setSyncState('Connected');
-                updateOneDriveSettingsUI();
-
-                // Trigger initial download-if-newer check
-                await executeDownloadSync(false);
-                return;
-              }
-
-              if (tokenData.error === 'authorization_pending') {
-                // Keep polling
-                odAuthPollIntervalTimer = setTimeout(pollToken, pollInterval);
-              } else if (tokenData.error === 'slow_down') {
-                pollInterval += 5000;
-                odAuthPollIntervalTimer = setTimeout(pollToken, pollInterval);
-              } else if (tokenData.error === 'authorization_declined') {
-                closeDeviceCodeModal();
-                showToast('OneDrive connection declined by user', 'error');
-                logSyncEvent('Connection declined by user');
-                setSyncState('Disconnected');
-              } else if (tokenData.error === 'expired_token') {
-                closeDeviceCodeModal();
-                showToast('Authorization timed out', 'error');
-                logSyncEvent('Authorization timed out');
-                setSyncState('Disconnected');
-              } else {
-                closeDeviceCodeModal();
-                showToast(`OneDrive authentication error: ${tokenData.error_description || tokenData.error || 'Failed'}`, 'error');
-                logSyncEvent(`Auth error: ${tokenData.error || 'Unknown'}`);
-                setSyncState('Disconnected');
-              }
-            } catch (pollErr) {
-              console.warn('Device code polling network glitch:', pollErr);
-              odAuthPollIntervalTimer = setTimeout(pollToken, pollInterval);
+            if (error) {
+              const errDesc = error_description || error;
+              showToast(`Erro de autorização: ${errDesc}`, 'error');
+              logSyncEvent(`Auth error: ${errDesc}`);
+              setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
+              return;
             }
+
+            const expectedState = sessionStorage.getItem('sq_od_oauth_state');
+            const storedVerifier = sessionStorage.getItem('sq_od_pkce_verifier');
+
+            if (!returnedState || returnedState !== expectedState) {
+              showToast('Falha na validação do estado OAuth (state mismatch).', 'error');
+              logSyncEvent('OAuth state mismatch');
+              setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
+              return;
+            }
+
+            if (!code) {
+              showToast('Código de autorização não recebido.', 'error');
+              logSyncEvent('No auth code received');
+              setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
+              return;
+            }
+
+            exchangeAuthCodeForToken(code, storedVerifier);
           };
 
-          odAuthPollIntervalTimer = setTimeout(pollToken, pollInterval);
+          window.addEventListener('message', odActiveMessageListener);
+
+          // Poll for user closing popup manually
+          odActivePopupPollTimer = setInterval(() => {
+            if (authResolved) {
+              cleanupAuthListeners();
+              return;
+            }
+            try {
+              if (popup.closed) {
+                authResolved = true;
+                cleanupAuthListeners();
+                showToast('Conexão cancelada', 'info');
+                logSyncEvent('Conexão cancelada pelo usuário');
+                setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
+              }
+            } catch (e) {}
+          }, 500);
+
+          // 5-minute timeout
+          odActiveAuthTimeoutTimer = setTimeout(() => {
+            if (!authResolved) {
+              authResolved = true;
+              cleanupAuthListeners();
+              try {
+                if (popup && !popup.closed) popup.close();
+              } catch (e) {}
+              showToast('Tempo limite de conexão esgotado (5 minutos)', 'error');
+              logSyncEvent('Tempo limite de autorização esgotado');
+              setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
+            }
+          }, 5 * 60 * 1000);
+
         } catch (err) {
-          console.error('Device code initiate failed:', err);
-          showToast(`Could not start OneDrive connection: ${err.message}`, 'error');
-          logSyncEvent(`Connect initiate error: ${err.message}`);
+          console.error('Failed to initiate PKCE flow:', err);
+          cleanupAuthListeners();
+          showToast(`Erro ao iniciar conexão: ${err.message}`, 'error');
+          setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
+        }
+      }
+
+      async function exchangeAuthCodeForToken(code, codeVerifier) {
+        setSyncState('Syncing…');
+        logSyncEvent('Trocando código de autorização por token…');
+
+        const redirectUri = getRedirectUri();
+        const body = new URLSearchParams({
+          client_id: OD_CONFIG.clientId,
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: redirectUri,
+          code_verifier: codeVerifier,
+          scope: OD_CONFIG.scopes
+        });
+
+        try {
+          let tokenRes;
+          try {
+            tokenRes = await fetch(OD_CONFIG.tokenEndpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: body.toString()
+            });
+          } catch (fetchErr) {
+            if (isNetworkOrCorsError(fetchErr)) {
+              logSyncEvent('CORS/Network error exchanging token');
+              setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
+              await showCorsErrorNotification();
+              return;
+            }
+            throw fetchErr;
+          }
+
+          if (!tokenRes.ok) {
+            const errJson = await tokenRes.json().catch(() => ({}));
+            const errMsg = errJson.error_description || errJson.error || `HTTP ${tokenRes.status}`;
+            throw new Error(errMsg);
+          }
+
+          const tokenData = await tokenRes.json();
+          localStorage.setItem('sq_od_access_token', tokenData.access_token);
+          if (tokenData.refresh_token) {
+            localStorage.setItem('sq_od_refresh_token', tokenData.refresh_token);
+          }
+          const expiresAt = Date.now() + ((tokenData.expires_in || 3600) * 1000);
+          localStorage.setItem('sq_od_expires_at', String(expiresAt));
+
+          sessionStorage.removeItem('sq_od_pkce_verifier');
+          sessionStorage.removeItem('sq_od_oauth_state');
+
+          // Fetch account profile
+          try {
+            const meRes = await fetch('https://graph.microsoft.com/v1.0/me', {
+              headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+            });
+            if (meRes.ok) {
+              const meData = await meRes.json();
+              const email = meData.mail || meData.userPrincipalName || meData.displayName || 'Microsoft User';
+              localStorage.setItem('sq_od_account_email', email);
+            }
+          } catch (meErr) {
+            console.warn('Could not fetch user profile:', meErr);
+          }
+
+          const userEmail = localStorage.getItem('sq_od_account_email') || 'User';
+          logSyncEvent(`Conectado como ${userEmail}`);
+          showToast(`Conectado ao OneDrive (${userEmail})!`, 'success');
+          setSyncState('Connected');
+          updateOneDriveSettingsUI();
+
+          // Trigger initial sync check
+          await executeDownloadSync(false);
+        } catch (err) {
+          console.error('Token exchange failed:', err);
+          logSyncEvent(`Token exchange error: ${err.message}`);
+          showToast(`Falha na autenticação do OneDrive: ${err.message}`, 'error');
           setSyncState(isOneDriveConnected() ? 'Connected' : 'Disconnected');
         }
       }
@@ -18621,6 +18790,9 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         localStorage.removeItem('sq_od_account_email');
         localStorage.removeItem('sq_od_last_cloud_seen_at');
         localStorage.removeItem('sq_od_last_sync_time');
+
+        sessionStorage.removeItem('sq_od_pkce_verifier');
+        sessionStorage.removeItem('sq_od_oauth_state');
 
         if (odUploadDebounceTimer) {
           clearTimeout(odUploadDebounceTimer);
@@ -18641,8 +18813,22 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       const odLogToggle = document.getElementById('od-log-toggle');
       const odLogContent = document.getElementById('od-log-content');
       const odLogChevron = document.getElementById('od-log-chevron');
+      const btnCopyOrigin = document.getElementById('btn-copy-origin');
+      const odCurrentOrigin = document.getElementById('od-current-origin');
 
-      if (btnOdConnect) btnOdConnect.addEventListener('click', initiateDeviceCodeFlow);
+      function copyCurrentOrigin() {
+        const orig = getCurrentOriginDisplay();
+        navigator.clipboard.writeText(orig).then(() => {
+          showToast('Origem copiada para a área de transferência!', 'success');
+        }).catch(() => {
+          showToast(orig);
+        });
+      }
+
+      if (btnCopyOrigin) btnCopyOrigin.addEventListener('click', copyCurrentOrigin);
+      if (odCurrentOrigin) odCurrentOrigin.addEventListener('click', copyCurrentOrigin);
+
+      if (btnOdConnect) btnOdConnect.addEventListener('click', initiatePkceAuthFlow);
       if (btnOdDisconnect) btnOdDisconnect.addEventListener('click', disconnectOneDrive);
 
       if (btnOdSyncNow) {
@@ -18656,23 +18842,6 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           }
         });
       }
-
-      if (btnOdCopyCode) {
-        btnOdCopyCode.addEventListener('click', () => {
-          const code = odUserCodeDisplay ? odUserCodeDisplay.textContent.trim() : '';
-          if (code) {
-            navigator.clipboard.writeText(code).then(() => {
-              btnOdCopyCode.textContent = 'Copied!';
-              setTimeout(() => { btnOdCopyCode.textContent = 'Copy Code'; }, 2000);
-            }).catch(() => {
-              showToast(code);
-            });
-          }
-        });
-      }
-
-      if (btnOdCancelAuth) btnOdCancelAuth.addEventListener('click', closeDeviceCodeModal);
-      if (btnCloseOdModal) btnCloseOdModal.addEventListener('click', closeDeviceCodeModal);
 
       if (odAutoSyncToggle) {
         odAutoSyncToggle.addEventListener('change', () => {
