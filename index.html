@@ -2572,6 +2572,619 @@
             height: 100%;
         }
 
+        /* Calendar */
+        #calendar-viewport {
+            flex: 1;
+            overflow: auto;
+            padding: 20px 24px 24px;
+        }
+
+        .calendar-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .calendar-controls [data-calendar-view].active {
+            background: var(--accent-muted);
+            color: var(--accent-text, var(--text-heading, #fff));
+        }
+
+        .calendar-period-label {
+            min-width: 210px;
+            text-align: center;
+            color: var(--text-heading, #fff);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .calendar-weekday-row,
+        .calendar-week {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+        }
+
+        .calendar-weekday-row {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom: 0;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+
+        .calendar-weekday {
+            padding: 10px 6px;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .calendar-week {
+            --calendar-event-rows: 0;
+            grid-template-rows: 112px repeat(var(--calendar-event-rows), 24px);
+            border: 1px solid var(--border);
+            border-top: 0;
+            background: var(--surface);
+        }
+
+        .calendar-week:last-child {
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+        }
+
+        .calendar-day {
+            min-width: 0;
+            padding: 7px;
+            border-right: 1px solid var(--border-subtle);
+            border-top: 1px solid var(--border-subtle);
+            color: var(--text);
+        }
+
+        .calendar-day:last-of-type {
+            border-right: 0;
+        }
+
+        .calendar-day-number {
+            display: inline-flex;
+            width: 27px;
+            height: 27px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--text);
+            font-size: 0.8rem;
+        }
+
+        .calendar-day-heading {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            min-height: 27px;
+        }
+
+        .calendar-date-markers,
+        .calendar-year-events {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .calendar-date-marker {
+            flex: 0 0 7px;
+            width: 7px;
+            height: 7px;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .calendar-date-marker-task {
+            background: #2878a7;
+        }
+
+        .calendar-date-marker-milestone {
+            background: #9460ae;
+        }
+
+        .calendar-day.is-outside-month .calendar-day-number {
+            color: var(--text-muted);
+            opacity: 0.55;
+        }
+
+        .calendar-day.is-today .calendar-day-number {
+            background: var(--accent);
+            color: #111;
+            font-weight: 800;
+        }
+
+        .calendar-event {
+            z-index: 1;
+            min-width: 0;
+            height: 20px;
+            margin: 2px 3px;
+            padding: 2px 6px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .calendar-event:hover,
+        .calendar-year-event:hover {
+            filter: brightness(1.18);
+        }
+
+        .calendar-event-task,
+        .calendar-year-event-task {
+            background: #2878a7;
+        }
+
+        .calendar-event-milestone,
+        .calendar-year-event-milestone {
+            background: #9460ae;
+        }
+
+        .calendar-event-subject,
+        .calendar-date-marker-subject {
+            background: #218b76;
+        }
+
+        .calendar-event.is-complete {
+            opacity: 0.58;
+            text-decoration: line-through;
+        }
+
+        .calendar-year-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .calendar-year-month {
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--surface);
+        }
+
+        .calendar-year-month-title {
+            margin: 0 0 10px;
+            color: var(--text-heading, #fff);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .calendar-year-days {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 3px;
+        }
+
+        .calendar-year-weekday,
+        .calendar-year-day {
+            min-width: 0;
+            text-align: center;
+        }
+
+        .calendar-year-weekday {
+            color: var(--text-muted);
+            font-size: 0.62rem;
+            font-weight: 700;
+        }
+
+        .calendar-year-day {
+            min-height: 42px;
+            padding: 2px 0;
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 0.68rem;
+        }
+
+        .calendar-year-day.is-outside-month {
+            opacity: 0.35;
+        }
+
+        .calendar-year-day.is-today {
+            outline: 1px solid var(--accent);
+        }
+
+        .calendar-year-day-number {
+            display: block;
+            line-height: 18px;
+        }
+
+        .calendar-year-events {
+            justify-content: center;
+        }
+
+        .calendar-empty-state {
+            padding: 28px 12px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        /* Study Hub */
+        #study-hub-viewport {
+            flex: 1;
+            overflow: auto;
+            padding: 24px;
+        }
+
+        .study-hub-intro {
+            margin: 0 0 22px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .study-level-grid,
+        .study-subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 18px;
+        }
+
+        .study-level-card {
+            position: relative;
+            min-height: 190px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg, 12px);
+            background:
+                radial-gradient(circle at 82% 15%, rgba(217, 155, 38, 0.19), transparent 38%),
+                linear-gradient(145deg, var(--surface-elevated), var(--surface));
+            color: var(--text);
+            cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .study-level-card:hover,
+        .study-level-card:focus-within {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+        }
+
+        .study-level-card h3 {
+            margin: 0 0 5px;
+            color: var(--text-heading, #fff);
+            font-size: 1.12rem;
+        }
+
+        .study-level-meta {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+
+        .study-level-type {
+            align-self: flex-start;
+            margin-bottom: auto;
+            padding: 4px 8px;
+            border: 1px solid rgba(217, 155, 38, 0.32);
+            border-radius: 99px;
+            background: var(--accent-muted);
+            color: var(--accent-text, var(--accent));
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .study-card-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .study-level-card:hover .study-card-actions,
+        .study-level-card:focus-within .study-card-actions {
+            opacity: 1;
+        }
+
+        .study-card-action {
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .study-level-hover {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            background: rgba(10, 13, 18, 0.88);
+            color: var(--accent);
+            font-weight: 700;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease;
+        }
+
+        .study-level-card:hover .study-level-hover,
+        .study-level-card:focus-within .study-level-hover {
+            opacity: 1;
+        }
+
+        .study-level-brain {
+            font-size: 2.6rem;
+            line-height: 1;
+            animation: study-brain-fluctuate 1.15s ease-in-out infinite alternate;
+        }
+
+        @keyframes study-brain-fluctuate {
+            from { transform: scale(0.92) rotate(-7deg); }
+            to { transform: scale(1.1) rotate(7deg); }
+        }
+
+        .study-level-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .study-level-detail-header h2 {
+            margin: 0;
+            color: var(--text-heading, #fff);
+            font-size: 1.1rem;
+        }
+
+        .study-subject-folder {
+            margin-bottom: 18px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--surface);
+        }
+
+        .study-subject-folder summary {
+            color: var(--text-heading, #fff);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .study-subject-folder-count {
+            margin-left: 6px;
+            color: var(--text-muted);
+            font-size: 0.76rem;
+            font-weight: 500;
+        }
+
+        .study-subject-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            margin-top: 14px;
+        }
+
+        .study-subject-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--surface-elevated);
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .study-subject-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .study-subject-image {
+            display: block;
+            width: 100%;
+            height: 124px;
+            object-fit: cover;
+            background: var(--surface);
+        }
+
+        .study-subject-placeholder {
+            display: flex;
+            height: 124px;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(140deg, rgba(217, 155, 38, 0.14), var(--surface));
+            color: var(--accent);
+            font-size: 2.2rem;
+        }
+
+        .study-subject-card-body {
+            padding: 12px;
+        }
+
+        .study-subject-card h4 {
+            margin: 0 0 6px;
+            color: var(--text-heading, #fff);
+            font-size: 0.9rem;
+        }
+
+        .study-subject-card-meta {
+            color: var(--text-muted);
+            font-size: 0.74rem;
+            line-height: 1.5;
+        }
+
+        .study-passed-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 7px;
+            color: #3fb950;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .study-empty-state {
+            grid-column: 1 / -1;
+            padding: 42px 18px;
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .study-editor-section {
+            margin-bottom: 14px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--surface);
+        }
+
+        .study-editor-section h3 {
+            margin: 0 0 12px;
+            color: var(--text-heading, #fff);
+            font-size: 0.92rem;
+        }
+
+        .study-list {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .study-list-row {
+            padding: 10px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            background: var(--surface-elevated);
+        }
+
+        .study-topic-row,
+        .study-row-heading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .study-topic-row .form-input {
+            flex: 1;
+        }
+
+        .study-image-preview {
+            display: block;
+            max-width: 220px;
+            max-height: 130px;
+            margin-top: 9px;
+            border-radius: var(--radius-sm);
+            object-fit: contain;
+        }
+
+        .study-note-tag {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 2px 7px;
+            border: 1px solid rgba(217, 155, 38, 0.35);
+            border-radius: 99px;
+            background: var(--accent-muted);
+            color: var(--accent-text, var(--accent));
+            font-size: 0.66rem;
+            font-weight: 700;
+        }
+
+        @media (max-width: 650px) {
+            #study-hub-viewport {
+                padding: 14px;
+            }
+
+            .study-card-actions {
+                opacity: 1;
+            }
+
+            .study-level-card {
+                min-height: 165px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            #view-calendar .top-bar {
+                height: auto;
+                min-height: 64px;
+                flex-wrap: wrap;
+                padding-top: 8px;
+                padding-bottom: 8px;
+            }
+
+            .calendar-controls {
+                flex: 1 1 100%;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .calendar-period-label {
+                min-width: 130px;
+            }
+
+            .calendar-year-grid {
+                grid-template-columns: repeat(2, minmax(220px, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            #calendar-viewport {
+                padding: 12px;
+            }
+
+            .calendar-controls {
+                gap: 4px;
+            }
+
+            .calendar-period-label {
+                min-width: 0;
+                font-size: 0.84rem;
+            }
+
+            .calendar-controls .sq-btn {
+                padding: 6px 8px;
+            }
+
+            .calendar-week {
+                grid-template-rows: 82px repeat(var(--calendar-event-rows), 22px);
+            }
+
+            .calendar-day {
+                padding: 4px 2px;
+            }
+
+            .calendar-event {
+                margin: 2px 1px;
+                padding: 2px 3px;
+                font-size: 0.6rem;
+            }
+
+            .calendar-year-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Brainstorm View & Notes Grid */
         #brainstorm-viewport {
             flex: 1;
@@ -5434,6 +6047,28 @@
                         </button>
                     </li>
                     <li>
+                        <button class="nav-item-btn" id="nav-calendar" type="button">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="17" rx="2"></rect>
+                                <path d="M16 2v4M8 2v4M3 10h18"></path>
+                                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path>
+                            </svg>
+                            <span>Calendar</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="nav-item-btn" id="nav-study-hub" type="button">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 8.5 12 3l10 5.5-10 5.5L2 8.5Z"></path>
+                                <path d="M6 11v5c3.5 3 8.5 3 12 0v-5"></path>
+                                <path d="M22 9v6"></path>
+                            </svg>
+                            <span>Study Hub</span>
+                        </button>
+                    </li>
+                    <li>
                         <button class="nav-item-btn" id="nav-brainstorm" type="button">
                             <!-- Idea / Lightbulb Icon for Default, Ghost SVG for Halloween -->
                             <span class="theme-icon-def">
@@ -6026,6 +6661,64 @@
                 </div>
             </section>
 
+            <!-- CALENDAR VIEW -->
+            <section class="app-view" id="view-calendar" style="display: none;">
+                <header class="top-bar">
+                    <div class="top-left">
+                        <h1 class="page-heading">Calendar</h1>
+                    </div>
+                    <div class="top-actions calendar-controls">
+                        <div class="archive-button-group" aria-label="Calendar navigation">
+                            <button class="archive-btn" id="calendar-previous" type="button" aria-label="Previous period">‹</button>
+                            <button class="archive-btn" id="calendar-today" type="button">Today</button>
+                            <button class="archive-btn" id="calendar-next" type="button" aria-label="Next period">›</button>
+                        </div>
+                        <span class="calendar-period-label" id="calendar-period-label"></span>
+                        <div class="archive-button-group" aria-label="Calendar view">
+                            <button class="archive-btn" type="button" data-calendar-view="week">Week</button>
+                            <button class="archive-btn active" type="button" data-calendar-view="month">Month</button>
+                            <button class="archive-btn" type="button" data-calendar-view="year">Year</button>
+                        </div>
+                    </div>
+                </header>
+                <div id="calendar-viewport">
+                    <div id="calendar-content" aria-live="polite"></div>
+                </div>
+            </section>
+
+            <!-- STUDY HUB VIEW -->
+            <section class="app-view" id="view-study-hub" style="display: none;">
+                <header class="top-bar">
+                    <div class="top-left">
+                        <h1 class="page-heading">Study Hub</h1>
+                    </div>
+                    <div class="top-actions">
+                        <button class="sq-btn" id="btn-study-back-levels" type="button" style="display:none;">← Academic Levels</button>
+                        <button class="sq-btn sq-btn-primary" id="btn-study-add-level" type="button">
+                            <span>＋ Add Academic Level</span>
+                        </button>
+                        <button class="sq-btn sq-btn-primary" id="btn-study-add-subject" type="button" style="display:none;">
+                            <span>＋ Add Subject</span>
+                        </button>
+                    </div>
+                </header>
+                <div id="study-hub-viewport">
+                    <div id="study-levels-view">
+                        <p class="study-hub-intro">Organize your university journey, completed programs, and future degrees in one place.</p>
+                        <div class="study-level-grid" id="study-level-grid"></div>
+                    </div>
+                    <div id="study-level-detail" style="display:none;">
+                        <div class="study-level-detail-header">
+                            <div>
+                                <h2 id="study-level-detail-title"></h2>
+                                <div class="study-level-meta" id="study-level-detail-meta"></div>
+                            </div>
+                        </div>
+                        <div id="study-subject-folders"></div>
+                    </div>
+                </div>
+            </section>
+
             <!-- ARCHIVES VIEW -->
             <section class="app-view" id="view-archives" style="display: none;">
                 <!-- Top Bar -->
@@ -6137,6 +6830,8 @@
                                     value="Book"> Book</label>
                             <label class="filter-checkbox-label"><input type="checkbox" class="af-type-chk"
                                     value="Game"> Game</label>
+                            <label class="filter-checkbox-label"><input type="checkbox" class="af-type-chk"
+                                    value="Subject"> Subject</label>
                         </div>
                     </div>
 
@@ -6172,6 +6867,8 @@
                                     value="Complete"> Complete</label>
                             <label class="filter-checkbox-label"><input type="checkbox" class="af-status-chk"
                                     value="Awaiting"> Awaiting</label>
+                            <label class="filter-checkbox-label"><input type="checkbox" class="af-status-chk"
+                                    value="Passed"> Passed</label>
                             <label class="filter-checkbox-label"><input type="checkbox" class="af-status-chk"
                                     value="Watching"> Watching</label>
                             <label class="filter-checkbox-label"><input type="checkbox" class="af-status-chk"
@@ -8026,6 +8723,126 @@
     <!-- Hidden File Input for Game Card "Attach Image" Action -->
     <input type="file" id="game-card-attach-input" accept=".png,.jpg,.jpeg,image/png,image/jpeg" style="display:none;">
 
+    <!-- ACADEMIC LEVEL EDITOR -->
+    <div class="modal-backdrop" id="modal-academic-level-editor">
+        <div class="modal-dialog modal-dialog-small" style="max-width:540px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="academic-level-editor-title">New Academic Level</h3>
+                <button type="button" class="sq-btn sq-btn-icon" id="btn-close-academic-level-editor" title="Close">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="academic-level-edit-id">
+                <div class="form-group">
+                    <label class="form-label" for="academic-level-name">Program name *</label>
+                    <input type="text" class="form-input" id="academic-level-name" placeholder="e.g. Computer Science">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="academic-level-type">Academic Level</label>
+                        <select class="form-select" id="academic-level-type">
+                            <option>Associate</option>
+                            <option>Bachelor</option>
+                            <option>MBA</option>
+                            <option>Master</option>
+                            <option>Doctorate</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="academic-level-status">Program status</label>
+                        <select class="form-select" id="academic-level-status">
+                            <option value="Planned">Planned</option>
+                            <option value="Current">Current</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="academic-level-institution">University / Institution</label>
+                    <input type="text" class="form-input" id="academic-level-institution" placeholder="Optional">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="sq-btn" id="btn-cancel-academic-level-editor">Cancel</button>
+                <button type="button" class="sq-btn sq-btn-primary" id="btn-save-academic-level-editor">Save Academic Level</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBJECT EDITOR -->
+    <div class="modal-backdrop" id="modal-subject-editor">
+        <div class="modal-dialog modal-dialog-large">
+            <div class="modal-header">
+                <h2 class="modal-title" id="subject-editor-title">New Subject</h2>
+                <button type="button" class="sq-btn sq-btn-icon" id="btn-close-subject-editor" title="Close">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="subject-edit-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="subject-title">Title *</label>
+                        <input type="text" class="form-input" id="subject-title" placeholder="Subject title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="subject-professor">Professor</label>
+                        <input type="text" class="form-input" id="subject-professor" placeholder="Professor name">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="subject-year">Grade / Year</label>
+                        <input type="number" class="form-input" id="subject-year" min="1" step="1" value="1">
+                    </div>
+                    <div class="form-group" style="justify-content:flex-end;">
+                        <label class="form-label" for="subject-completed">Completion</label>
+                        <label style="display:flex; align-items:center; gap:8px; color:var(--text);">
+                            <input type="checkbox" id="subject-completed"> Completed / Passed
+                        </label>
+                    </div>
+                </div>
+
+                <section class="study-editor-section">
+                    <div class="study-row-heading">
+                        <h3 style="flex:1;">Topics</h3>
+                        <button type="button" class="sq-btn sq-btn-sm" id="btn-add-subject-topic">＋ Add Topic</button>
+                    </div>
+                    <div class="study-list" id="subject-topics-list"></div>
+                </section>
+
+                <section class="study-editor-section">
+                    <div class="study-row-heading">
+                        <h3 style="flex:1;">Activities & Homework</h3>
+                        <button type="button" class="sq-btn sq-btn-sm" id="btn-add-subject-activity">＋ Add Activity</button>
+                    </div>
+                    <div class="study-list" id="subject-activities-list"></div>
+                </section>
+
+                <section class="study-editor-section">
+                    <div class="study-row-heading">
+                        <h3 style="flex:1;">Exams</h3>
+                        <button type="button" class="sq-btn sq-btn-sm" id="btn-add-subject-exam">＋ Add Exam</button>
+                    </div>
+                    <div class="study-list" id="subject-exams-list"></div>
+                </section>
+
+                <section class="study-editor-section">
+                    <h3>Subject Image</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="subject-image">Attach PNG or JPEG</label>
+                        <input type="file" class="form-input" id="subject-image" accept=".png,.jpg,.jpeg,image/png,image/jpeg" style="padding:6px;">
+                        <div id="subject-image-info" class="study-subject-card-meta"></div>
+                        <img id="subject-image-preview" class="study-image-preview" alt="Subject image preview" style="display:none;">
+                        <button type="button" class="sq-btn sq-btn-sm" id="btn-remove-subject-image" style="display:none; align-self:flex-start;">Remove image</button>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="sq-btn" id="btn-cancel-subject-editor">Cancel</button>
+                <button type="button" class="sq-btn sq-btn-primary" id="btn-save-subject-editor">Save Subject</button>
+            </div>
+        </div>
+    </div>
+
     <!-- IMAGE VIEWER MODAL (LARGE HIGH RES POPUP) -->
     <div class="modal-backdrop" id="modal-image-viewer">
         <div class="modal-dialog modal-dialog-large" style="max-width:920px;">
@@ -8386,7 +9203,7 @@
 
             // --- IndexedDB Persistence Layer ---
             const DB_NAME = 'SideQuestsDB_v1';
-            const DB_VERSION = 11;
+            const DB_VERSION = 12;
             let db = null;
 
             function initDB() {
@@ -8432,6 +9249,12 @@
                         }
                         if (!d.objectStoreNames.contains('diagrams')) {
                             d.createObjectStore('diagrams', { keyPath: 'id' });
+                        }
+                        if (!d.objectStoreNames.contains('academicLevels')) {
+                            d.createObjectStore('academicLevels', { keyPath: 'id' });
+                        }
+                        if (!d.objectStoreNames.contains('subjects')) {
+                            d.createObjectStore('subjects', { keyPath: 'id' });
                         }
                         if (!d.objectStoreNames.contains('settings')) {
                             d.createObjectStore('settings', { keyPath: 'key' });
@@ -8581,6 +9404,8 @@
                 books: [],
                 games: [],
                 diagrams: [],
+                academicLevels: [],
+                subjects: [],
                 filters: {
                     types: new Set(),
                     tags: new Set(),
@@ -8977,8 +9802,23 @@
                     exportDiagrams.push(copy);
                 }
 
+                const rawSubjects = await dbGetAll('subjects');
+                const exportSubjects = [];
+                for (const subject of rawSubjects || []) {
+                    const copy = { ...subject };
+                    if (copy.imageAttachment && copy.imageAttachment.blob instanceof Blob) {
+                        copy.imageAttachmentExport = {
+                            id: copy.imageAttachment.id,
+                            name: copy.imageAttachment.name,
+                            dataUrl: await blobToDataUrl(copy.imageAttachment.blob)
+                        };
+                        delete copy.imageAttachment;
+                    }
+                    exportSubjects.push(copy);
+                }
+
                 return {
-                    version: 10,
+                    version: 12,
                     exportedAt: new Date().toISOString(),
                     activeTheme: state.activeTheme || 'default',
                     colorOverrides: state.customColorOverrides || {},
@@ -8994,6 +9834,8 @@
                     books: exportBooks,
                     games: exportGames,
                     diagrams: exportDiagrams,
+                    academicLevels: await dbGetAll('academicLevels'),
+                    subjects: exportSubjects,
                     media: exportMedia,
                     notes: await dbGetAll('notes')
                 };
@@ -9022,14 +9864,15 @@
                 const RECOGNIZED_KEYS = [
                     'version', 'kanbans', 'buckets', 'subBuckets', 'tasks', 'tags',
                     'milestones', 'movies', 'shows', 'courses', 'books', 'games',
-                    'diagrams', 'notes', 'media', 'brainstorm', 'appColors', 'activeTheme', 'colorOverrides'
+                    'diagrams', 'notes', 'media', 'brainstorm', 'academicLevels', 'subjects',
+                    'appColors', 'activeTheme', 'colorOverrides'
                 ];
                 const hasRecognizedKey = Object.keys(data).some(k => RECOGNIZED_KEYS.includes(k));
                 if (!hasRecognizedKey) {
                     throw new Error('This file is not a recognized Side Quests backup.');
                 }
 
-                if (typeof data.version === 'number' && data.version > 10 && !isSilent) {
+                if (typeof data.version === 'number' && data.version > 12 && !isSilent) {
                     showToast('Backup from newer app version — importing anyway', 'info');
                 }
 
@@ -9050,6 +9893,8 @@
                     if (db.objectStoreNames.contains('books')) await dbClear('books');
                     if (db.objectStoreNames.contains('games')) await dbClear('games');
                     if (db.objectStoreNames.contains('diagrams')) await dbClear('diagrams');
+                    if (db.objectStoreNames.contains('academicLevels')) await dbClear('academicLevels');
+                    if (db.objectStoreNames.contains('subjects')) await dbClear('subjects');
                     if (db.objectStoreNames.contains('settings')) await dbClear('settings');
 
                     if (data.activeTheme) {
@@ -9147,6 +9992,24 @@
                         }
                         if (diag.url === undefined) diag.url = null;
                         await dbPut('diagrams', diag);
+                    }
+
+                    for (const academicLevel of data.academicLevels || []) {
+                        await dbPut('academicLevels', academicLevel);
+                    }
+
+                    for (const subject of data.subjects || []) {
+                        if (subject.imageAttachmentExport) {
+                            const attachment = subject.imageAttachmentExport;
+                            const blob = dataUrlToBlob(attachment.dataUrl);
+                            subject.imageAttachment = {
+                                id: attachment.id || generateId(),
+                                name: attachment.name || 'subject-image',
+                                ...(blob ? { blob } : {})
+                            };
+                            delete subject.imageAttachmentExport;
+                        }
+                        await dbPut('subjects', subject);
                     }
 
                     const importedMedia = Array.isArray(data.media) ? data.media : [];
@@ -9578,7 +10441,7 @@
                     }
                 } catch (e) { }
 
-                const [kanbans, buckets, subBuckets, tasks, tags, milestones, media, notes, movies, courses, books, games, diagrams] = await Promise.all([
+                const [kanbans, buckets, subBuckets, tasks, tags, milestones, media, notes, movies, courses, books, games, diagrams, academicLevels, subjects] = await Promise.all([
                     dbGetAll('kanbans'),
                     dbGetAll('buckets'),
                     dbGetAll('subBuckets'),
@@ -9591,7 +10454,9 @@
                     dbGetAll('courses'),
                     dbGetAll('books'),
                     dbGetAll('games'),
-                    dbGetAll('diagrams')
+                    dbGetAll('diagrams'),
+                    dbGetAll('academicLevels'),
+                    dbGetAll('subjects')
                 ]);
 
                 state.kanbans = kanbans || [];
@@ -9622,6 +10487,8 @@
                     if (d.url === undefined) d.url = null;
                     return d;
                 }).sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+                state.academicLevels = (academicLevels || []).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                state.subjects = (subjects || []).sort((a, b) => (a.title || '').localeCompare(b.title || ''));
 
                 updateBoardHeading();
                 renderSidebarKanbans();
@@ -9634,7 +10501,9 @@
                 renderBooksGrid();
                 renderGamesGrid();
                 renderDiagramsGrid();
+                renderStudyHub();
                 renderFilterOptions();
+                if (state.activePage === 'calendar') renderCalendar();
                 if (state.activePage === 'archives') {
                     renderArchivesTable();
                     renderArchivesFilterOptions();
@@ -13221,6 +14090,12 @@
                             if (db.objectStoreNames.contains('games')) {
                                 await dbClear('games');
                             }
+                            if (db.objectStoreNames.contains('academicLevels')) {
+                                await dbClear('academicLevels');
+                            }
+                            if (db.objectStoreNames.contains('subjects')) {
+                                await dbClear('subjects');
+                            }
                             state.activeKanbanId = 'default';
                             localStorage.setItem('sq_active_kanban_id', 'default');
                             state.activeTheme = 'default';
@@ -13241,9 +14116,1016 @@
                 console.error('Settings module init error:', err);
             }
 
+            // --- Calendar ---
+            let calendarCurrentDate = new Date();
+            let calendarViewMode = 'month';
+            const calendarWeekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            function calendarDateKey(date) {
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            }
+
+            function calendarParseDate(value) {
+                if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+                const [year, month, day] = value.split('-').map(Number);
+                const date = new Date(year, month - 1, day);
+                if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+                return date;
+            }
+
+            function calendarGetEvents() {
+                const resources = [
+                    ...(state.tasks || []).filter(task => !task.discarded).map(resource => ({ resource, type: 'task' })),
+                    ...(state.milestones || []).filter(milestone => !milestone.discarded).map(resource => ({ resource, type: 'milestone' })),
+                    ...(state.subjects || []).filter(subject => !subject.discarded).flatMap(subject => [
+                        ...(subject.activities || []).map(item => ({
+                            resource: subject,
+                            dateSource: item,
+                            type: 'subject',
+                            itemTitle: `${subject.title || 'Subject'}: ${item.title || 'Activity'}`,
+                            itemKind: 'Activity'
+                        })),
+                        ...(subject.exams || []).map(item => ({
+                            resource: subject,
+                            dateSource: item,
+                            type: 'subject',
+                            itemTitle: `${subject.title || 'Subject'}: ${item.title || 'Exam'}`,
+                            itemKind: 'Exam'
+                        }))
+                    ])
+                ];
+                const entries = resources.flatMap(entry => [
+                    entry,
+                    ...(entry.type !== 'subject' ? (entry.resource.checklist || []).map(item => ({
+                        ...entry,
+                        dateSource: item,
+                        itemTitle: item.text || 'Checklist item',
+                        isChecklistItem: true,
+                        itemComplete: !!item.done
+                    })) : [])
+                ]);
+
+                return entries.reduce((events, entry) => {
+                    const dateSource = entry.dateSource || entry.resource;
+                    let startDate = calendarParseDate(dateSource.startDate);
+                    let endDate = calendarParseDate(dateSource.dueDate);
+                    if (!startDate && !endDate) return events;
+                    const startDateKey = startDate ? calendarDateKey(startDate) : null;
+                    const dueDateKey = endDate ? calendarDateKey(endDate) : null;
+                    if (!startDate) startDate = endDate;
+                    if (!endDate) endDate = startDate;
+                    if (startDate > endDate) [startDate, endDate] = [endDate, startDate];
+
+                    const kanbanId = entry.resource.kanbanId || 'default';
+                    const kanban = state.kanbans.find(board => board.id === kanbanId);
+                    events.push({
+                        ...entry,
+                        title: entry.itemTitle || entry.resource.title || 'Untitled',
+                        start: calendarDateKey(startDate),
+                        end: calendarDateKey(endDate),
+                        startDateKey,
+                        dueDateKey,
+                        isComplete: !!entry.itemComplete || !!entry.resource.completed || entry.resource.status === 'Complete',
+                        boardTitle: kanban ? kanban.title : 'Side Quests'
+                    });
+                    return events;
+                }, []).sort((a, b) => a.start.localeCompare(b.start) || b.end.localeCompare(a.end) || a.title.localeCompare(b.title));
+            }
+
+            function calendarOpenEvent(event) {
+                if (event.type === 'task') {
+                    openTaskEditor(event.resource, event.resource.containerId, event.resource.containerType);
+                } else if (event.type === 'subject') {
+                    activeStudyLevelId = event.resource.academicLevelId;
+                    openSubjectEditor(event.resource);
+                } else {
+                    openMilestoneEditor(event.resource);
+                }
+            }
+
+            function calendarStartOfWeek(date) {
+                const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                start.setDate(start.getDate() - start.getDay());
+                return start;
+            }
+
+            function calendarAppendEventButton(parent, event, className, startColumn, endColumn, row) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `${className} ${className}-${event.type}${event.isComplete ? ' is-complete' : ''}`;
+                button.textContent = event.title;
+                const resourceLabel = event.type === 'subject' ? `Subject ${event.itemKind || 'event'}` : event.isChecklistItem ? `${event.type === 'task' ? 'Quest' : 'Milestone'} checklist` : event.type === 'task' ? event.boardTitle : 'Milestone';
+                button.title = `${event.title} · ${resourceLabel} · ${event.start}${event.end !== event.start ? ` to ${event.end}` : ''}`;
+                button.setAttribute('aria-label', `Edit ${resourceLabel}: ${event.title}, ${event.start}${event.end !== event.start ? ` through ${event.end}` : ''}`);
+                if (startColumn !== undefined) {
+                    button.style.gridColumn = `${startColumn + 1} / ${endColumn + 2}`;
+                    button.style.gridRow = String(row + 2);
+                }
+                button.addEventListener('click', () => calendarOpenEvent(event));
+                parent.appendChild(button);
+            }
+
+            function calendarAppendDateMarkers(parent, dateKey, events, className) {
+                const endpointEvents = events.filter(event => event.startDateKey === dateKey || event.dueDateKey === dateKey);
+                if (!endpointEvents.length) return;
+
+                const markerContainer = document.createElement('span');
+                markerContainer.className = className;
+                endpointEvents.forEach(event => {
+                    const marker = document.createElement('button');
+                    marker.type = 'button';
+                    marker.className = `calendar-date-marker calendar-date-marker-${event.type}`;
+                    const endpoints = [];
+                    if (event.startDateKey === dateKey) endpoints.push('starts');
+                    if (event.dueDateKey === dateKey) endpoints.push('ends');
+                    const resourceLabel = event.type === 'subject' ? `Subject ${event.itemKind || 'event'}` : event.isChecklistItem ? `${event.type === 'task' ? 'Quest' : 'Milestone'} checklist` : event.type === 'task' ? event.boardTitle : 'Milestone';
+                    marker.title = `${event.title} · ${endpoints.join(' and ')} · ${resourceLabel}`;
+                    marker.setAttribute('aria-label', `${endpoints.join(' and ')}: ${resourceLabel} ${event.title}`);
+                    marker.addEventListener('click', () => calendarOpenEvent(event));
+                    markerContainer.appendChild(marker);
+                });
+                parent.appendChild(markerContainer);
+            }
+
+            function calendarRenderWeekGrid(content, firstDay, weekCount, events, monthIndex) {
+                const weekdayRow = document.createElement('div');
+                weekdayRow.className = 'calendar-weekday-row';
+                calendarWeekdays.forEach(day => {
+                    const label = document.createElement('div');
+                    label.className = 'calendar-weekday';
+                    label.textContent = day;
+                    weekdayRow.appendChild(label);
+                });
+                content.appendChild(weekdayRow);
+
+                const todayKey = calendarDateKey(new Date());
+                for (let weekIndex = 0; weekIndex < weekCount; weekIndex++) {
+                    const weekStart = new Date(firstDay);
+                    weekStart.setDate(firstDay.getDate() + weekIndex * 7);
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekEnd.getDate() + 6);
+                    const weekStartKey = calendarDateKey(weekStart);
+                    const weekEndKey = calendarDateKey(weekEnd);
+                    const week = document.createElement('div');
+                    week.className = 'calendar-week';
+
+                    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+                        const date = new Date(weekStart);
+                        date.setDate(weekStart.getDate() + dayIndex);
+                        const cell = document.createElement('div');
+                        cell.className = 'calendar-day';
+                        if (monthIndex !== null && date.getMonth() !== monthIndex) cell.classList.add('is-outside-month');
+                        if (calendarDateKey(date) === todayKey) cell.classList.add('is-today');
+                        const heading = document.createElement('div');
+                        heading.className = 'calendar-day-heading';
+                        const number = document.createElement('span');
+                        number.className = 'calendar-day-number';
+                        number.textContent = String(date.getDate());
+                        heading.appendChild(number);
+                        calendarAppendDateMarkers(heading, calendarDateKey(date), events, 'calendar-date-markers');
+                        cell.appendChild(heading);
+                        cell.style.gridColumn = String(dayIndex + 1);
+                        cell.style.gridRow = '1';
+                        week.appendChild(cell);
+                    }
+
+                    const overlapping = events.filter(event => event.start <= weekEndKey && event.end >= weekStartKey);
+                    const lanes = [];
+                    overlapping.forEach(event => {
+                        const segmentStart = event.start < weekStartKey ? weekStartKey : event.start;
+                        const segmentEnd = event.end > weekEndKey ? weekEndKey : event.end;
+                        const startColumn = Math.round((calendarParseDate(segmentStart) - weekStart) / 86400000);
+                        const endColumn = Math.round((calendarParseDate(segmentEnd) - weekStart) / 86400000);
+                        let lane = lanes.findIndex(lastColumn => lastColumn < startColumn);
+                        if (lane < 0) lane = lanes.length;
+                        lanes[lane] = endColumn;
+                        calendarAppendEventButton(week, event, 'calendar-event', startColumn, endColumn, lane);
+                    });
+                    week.style.setProperty('--calendar-event-rows', String(lanes.length));
+                    content.appendChild(week);
+                }
+            }
+
+            function calendarRenderYear(content, year, events) {
+                const grid = document.createElement('div');
+                grid.className = 'calendar-year-grid';
+                const todayKey = calendarDateKey(new Date());
+
+                for (let month = 0; month < 12; month++) {
+                    const monthCard = document.createElement('section');
+                    monthCard.className = 'calendar-year-month';
+                    const title = document.createElement('h2');
+                    title.className = 'calendar-year-month-title';
+                    title.textContent = new Date(year, month, 1).toLocaleDateString(undefined, { month: 'long' });
+                    monthCard.appendChild(title);
+
+                    const days = document.createElement('div');
+                    days.className = 'calendar-year-days';
+                    calendarWeekdays.forEach(day => {
+                        const label = document.createElement('span');
+                        label.className = 'calendar-year-weekday';
+                        label.textContent = day[0];
+                        days.appendChild(label);
+                    });
+
+                    const firstOfMonth = new Date(year, month, 1);
+                    const gridStart = calendarStartOfWeek(firstOfMonth);
+                    const dayCount = Math.ceil((firstOfMonth.getDay() + new Date(year, month + 1, 0).getDate()) / 7) * 7;
+                    for (let index = 0; index < dayCount; index++) {
+                        const date = new Date(gridStart);
+                        date.setDate(gridStart.getDate() + index);
+                        const dateKey = calendarDateKey(date);
+                        const dayCell = document.createElement('div');
+                        dayCell.className = 'calendar-year-day';
+                        if (date.getMonth() !== month) dayCell.classList.add('is-outside-month');
+                        if (dateKey === todayKey) dayCell.classList.add('is-today');
+                        const number = document.createElement('span');
+                        number.className = 'calendar-year-day-number';
+                        number.textContent = String(date.getDate());
+                        dayCell.appendChild(number);
+
+                        calendarAppendDateMarkers(dayCell, dateKey, events, 'calendar-year-events');
+                        days.appendChild(dayCell);
+                    }
+                    monthCard.appendChild(days);
+                    grid.appendChild(monthCard);
+                }
+
+                content.appendChild(grid);
+            }
+
+            function renderCalendar() {
+                const content = document.getElementById('calendar-content');
+                const label = document.getElementById('calendar-period-label');
+                if (!content || !label) return;
+                content.replaceChildren();
+
+                document.querySelectorAll('[data-calendar-view]').forEach(button => {
+                    button.classList.toggle('active', button.dataset.calendarView === calendarViewMode);
+                });
+
+                const events = calendarGetEvents();
+                if (calendarViewMode === 'year') {
+                    const year = calendarCurrentDate.getFullYear();
+                    label.textContent = String(year);
+                    calendarRenderYear(content, year, events.filter(event => event.end >= `${year}-01-01` && event.start <= `${year}-12-31`));
+                    if (events.every(event => event.end < `${year}-01-01` || event.start > `${year}-12-31`)) {
+                        const empty = document.createElement('div');
+                        empty.className = 'calendar-empty-state';
+                        empty.textContent = 'No dated tasks or milestones this year.';
+                        content.appendChild(empty);
+                    }
+                    return;
+                }
+
+                if (calendarViewMode === 'week') {
+                    const firstDay = calendarStartOfWeek(calendarCurrentDate);
+                    const lastDay = new Date(firstDay);
+                    lastDay.setDate(lastDay.getDate() + 6);
+                    label.textContent = `${firstDay.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${lastDay.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                    calendarRenderWeekGrid(content, firstDay, 1, events, null);
+                } else {
+                    const year = calendarCurrentDate.getFullYear();
+                    const month = calendarCurrentDate.getMonth();
+                    label.textContent = calendarCurrentDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+                    const firstOfMonth = new Date(year, month, 1);
+                    const lastOfMonth = new Date(year, month + 1, 0);
+                    const firstDay = calendarStartOfWeek(firstOfMonth);
+                    const weekCount = Math.ceil((firstOfMonth.getDay() + lastOfMonth.getDate()) / 7);
+                    calendarRenderWeekGrid(content, firstDay, weekCount, events, month);
+                }
+            }
+
+            function shiftCalendarPeriod(amount) {
+                if (calendarViewMode === 'year') {
+                    calendarCurrentDate = new Date(calendarCurrentDate.getFullYear() + amount, calendarCurrentDate.getMonth(), 1);
+                } else if (calendarViewMode === 'week') {
+                    calendarCurrentDate = new Date(calendarCurrentDate.getFullYear(), calendarCurrentDate.getMonth(), calendarCurrentDate.getDate() + amount * 7);
+                } else {
+                    calendarCurrentDate = new Date(calendarCurrentDate.getFullYear(), calendarCurrentDate.getMonth() + amount, 1);
+                }
+                renderCalendar();
+            }
+
+            document.getElementById('calendar-previous').addEventListener('click', () => shiftCalendarPeriod(-1));
+            document.getElementById('calendar-next').addEventListener('click', () => shiftCalendarPeriod(1));
+            document.getElementById('calendar-today').addEventListener('click', () => {
+                calendarCurrentDate = new Date();
+                renderCalendar();
+            });
+            document.querySelectorAll('[data-calendar-view]').forEach(button => {
+                button.addEventListener('click', () => {
+                    calendarViewMode = button.dataset.calendarView;
+                    renderCalendar();
+                });
+            });
+
+            // --- Study Hub ---
+            let activeStudyLevelId = null;
+            let currentDraftAcademicLevel = null;
+            let currentDraftSubject = null;
+            let studyImageUrls = [];
+            let subjectEditorImageUrl = null;
+
+            function cleanStudyImageUrls() {
+                studyImageUrls.forEach(url => URL.revokeObjectURL(url));
+                studyImageUrls = [];
+            }
+
+            function clearSubjectEditorImageUrl() {
+                if (subjectEditorImageUrl) URL.revokeObjectURL(subjectEditorImageUrl);
+                subjectEditorImageUrl = null;
+            }
+
+            function getAcademicLevelById(id) {
+                return state.academicLevels.find(level => level.id === id);
+            }
+
+            function renderStudyHub() {
+                const levelGrid = document.getElementById('study-level-grid');
+                const levelsView = document.getElementById('study-levels-view');
+                const detailView = document.getElementById('study-level-detail');
+                const backButton = document.getElementById('btn-study-back-levels');
+                const addLevelButton = document.getElementById('btn-study-add-level');
+                const addSubjectButton = document.getElementById('btn-study-add-subject');
+                if (!levelGrid || !levelsView || !detailView) return;
+
+                cleanStudyImageUrls();
+                const selectedLevel = getAcademicLevelById(activeStudyLevelId);
+                const showingLevelDetail = !!selectedLevel;
+                levelsView.style.display = showingLevelDetail ? 'none' : '';
+                detailView.style.display = showingLevelDetail ? '' : 'none';
+                backButton.style.display = showingLevelDetail ? '' : 'none';
+                addLevelButton.style.display = showingLevelDetail ? 'none' : '';
+                addSubjectButton.style.display = showingLevelDetail ? '' : 'none';
+
+                if (showingLevelDetail) {
+                    document.getElementById('study-level-detail-title').textContent = `${selectedLevel.type} · ${selectedLevel.name}`;
+                    document.getElementById('study-level-detail-meta').textContent =
+                        [selectedLevel.institution, selectedLevel.status].filter(Boolean).join(' · ');
+                    renderStudySubjectFolders(selectedLevel);
+                    return;
+                }
+
+                levelGrid.replaceChildren();
+                const activeLevels = state.academicLevels.filter(level => !level.discarded);
+                if (!activeLevels.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'study-empty-state';
+                    empty.innerHTML = '<div style="font-size:2rem; margin-bottom:8px;">🎓</div><strong>No academic levels yet</strong><p>Create a level to organize your current studies and future programs.</p>';
+                    levelGrid.appendChild(empty);
+                }
+
+                activeLevels.forEach(level => {
+                    const card = document.createElement('article');
+                    card.className = 'study-level-card';
+                    card.tabIndex = 0;
+                    card.setAttribute('role', 'button');
+                    card.setAttribute('aria-label', `Study ${level.type}: ${level.name}`);
+                    const type = document.createElement('span');
+                    type.className = 'study-level-type';
+                    type.textContent = level.type || 'Academic Level';
+                    const heading = document.createElement('h3');
+                    heading.textContent = level.name || 'Untitled Program';
+                    const meta = document.createElement('div');
+                    meta.className = 'study-level-meta';
+                    meta.textContent = [level.institution, level.status].filter(Boolean).join(' · ');
+                    const hover = document.createElement('div');
+                    hover.className = 'study-level-hover';
+                    hover.innerHTML = '<span class="study-level-brain" aria-hidden="true">🧠</span><span>Study</span>';
+                    const actions = document.createElement('div');
+                    actions.className = 'study-card-actions';
+                    const edit = document.createElement('button');
+                    edit.type = 'button';
+                    edit.className = 'study-card-action';
+                    edit.title = 'Edit academic level';
+                    edit.setAttribute('aria-label', `Edit ${level.name}`);
+                    edit.textContent = '✎';
+                    edit.addEventListener('click', event => {
+                        event.stopPropagation();
+                        openAcademicLevelEditor(level);
+                    });
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'study-card-action';
+                    remove.title = 'Delete academic level';
+                    remove.setAttribute('aria-label', `Delete ${level.name}`);
+                    remove.textContent = '×';
+                    remove.addEventListener('click', async event => {
+                        event.stopPropagation();
+                        await deleteAcademicLevel(level);
+                    });
+                    actions.append(edit, remove);
+                    card.append(type, heading, meta, hover, actions);
+                    const openLevel = () => {
+                        activeStudyLevelId = level.id;
+                        renderStudyHub();
+                    };
+                    card.addEventListener('click', event => {
+                        if (!event.target.closest('.study-card-actions')) openLevel();
+                    });
+                    card.addEventListener('keydown', event => {
+                        if (event.target === card && (event.key === 'Enter' || event.key === ' ')) {
+                            event.preventDefault();
+                            openLevel();
+                        }
+                    });
+                    levelGrid.appendChild(card);
+                });
+            }
+
+            function renderStudySubjectFolders(level) {
+                const container = document.getElementById('study-subject-folders');
+                container.replaceChildren();
+                const subjects = state.subjects.filter(subject => !subject.discarded && subject.academicLevelId === level.id);
+                if (!subjects.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'study-empty-state';
+                    empty.innerHTML = '<div style="font-size:2rem; margin-bottom:8px;">📚</div><strong>No subjects in this level</strong><p>Add a subject to start organizing topics, activities, and exams.</p>';
+                    container.appendChild(empty);
+                    return;
+                }
+
+                const grouped = new Map();
+                subjects.forEach(subject => {
+                    const year = Math.max(1, Number(subject.year) || 1);
+                    if (!grouped.has(year)) grouped.set(year, []);
+                    grouped.get(year).push(subject);
+                });
+
+                Array.from(grouped.keys()).sort((a, b) => a - b).forEach(year => {
+                    const items = grouped.get(year);
+                    const folder = document.createElement('details');
+                    folder.className = 'study-subject-folder';
+                    folder.open = true;
+                    const summary = document.createElement('summary');
+                    summary.textContent = `Year ${year}`;
+                    const count = document.createElement('span');
+                    count.className = 'study-subject-folder-count';
+                    count.textContent = `(${items.length})`;
+                    summary.appendChild(count);
+                    const grid = document.createElement('div');
+                    grid.className = 'study-subject-grid';
+                    items.forEach(subject => grid.appendChild(createStudySubjectCard(subject)));
+                    folder.append(summary, grid);
+                    container.appendChild(folder);
+                });
+            }
+
+            function createStudySubjectCard(subject) {
+                const card = document.createElement('article');
+                card.className = 'study-subject-card';
+                card.tabIndex = 0;
+                const attachment = subject.imageAttachment;
+                if (attachment && attachment.blob instanceof Blob) {
+                    const image = document.createElement('img');
+                    image.className = 'study-subject-image';
+                    image.src = URL.createObjectURL(attachment.blob);
+                    image.alt = `${subject.title || 'Subject'} image`;
+                    image.loading = 'lazy';
+                    studyImageUrls.push(image.src);
+                    card.appendChild(image);
+                } else {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'study-subject-placeholder';
+                    placeholder.textContent = '📖';
+                    card.appendChild(placeholder);
+                }
+
+                const body = document.createElement('div');
+                body.className = 'study-subject-card-body';
+                const title = document.createElement('h4');
+                title.textContent = subject.title || 'Untitled Subject';
+                const meta = document.createElement('div');
+                meta.className = 'study-subject-card-meta';
+                meta.textContent = `${subject.professor ? `Professor: ${subject.professor}` : 'Professor not set'} · ${(subject.topics || []).length} topics`;
+                body.append(title, meta);
+                if (subject.completed) {
+                    const passed = document.createElement('span');
+                    passed.className = 'study-passed-badge';
+                    passed.textContent = '✓ Completed / Passed';
+                    body.appendChild(passed);
+                }
+                const edit = document.createElement('button');
+                edit.type = 'button';
+                edit.className = 'study-card-action';
+                edit.style.position = 'absolute';
+                edit.style.top = '8px';
+                edit.style.right = '8px';
+                edit.title = 'Edit subject';
+                edit.setAttribute('aria-label', `Edit ${subject.title}`);
+                edit.textContent = '✎';
+                edit.addEventListener('click', event => {
+                    event.stopPropagation();
+                    openSubjectEditor(subject);
+                });
+                card.append(body, edit);
+                card.addEventListener('click', () => openSubjectEditor(subject));
+                card.addEventListener('keydown', event => {
+                    if (event.target === card && (event.key === 'Enter' || event.key === ' ')) {
+                        event.preventDefault();
+                        openSubjectEditor(subject);
+                    }
+                });
+                return card;
+            }
+
+            const academicLevelModal = document.getElementById('modal-academic-level-editor');
+            const academicLevelNameInput = document.getElementById('academic-level-name');
+            const academicLevelTypeInput = document.getElementById('academic-level-type');
+            const academicLevelStatusInput = document.getElementById('academic-level-status');
+            const academicLevelInstitutionInput = document.getElementById('academic-level-institution');
+
+            function openAcademicLevelEditor(level = null) {
+                currentDraftAcademicLevel = level ? { ...level } : {
+                    id: generateId(),
+                    name: '',
+                    type: 'Bachelor',
+                    status: 'Current',
+                    institution: '',
+                    createdAt: Date.now(),
+                    discarded: false
+                };
+                document.getElementById('academic-level-editor-title').textContent = level ? 'Edit Academic Level' : 'New Academic Level';
+                document.getElementById('academic-level-edit-id').value = currentDraftAcademicLevel.id;
+                academicLevelNameInput.value = currentDraftAcademicLevel.name || '';
+                academicLevelTypeInput.value = currentDraftAcademicLevel.type || 'Bachelor';
+                academicLevelStatusInput.value = currentDraftAcademicLevel.status || 'Current';
+                academicLevelInstitutionInput.value = currentDraftAcademicLevel.institution || '';
+                academicLevelModal.classList.add('open');
+                setTimeout(() => academicLevelNameInput.focus(), 40);
+            }
+
+            function closeAcademicLevelEditor() {
+                academicLevelModal.classList.remove('open');
+                currentDraftAcademicLevel = null;
+            }
+
+            async function deleteAcademicLevel(level) {
+                const linkedSubjects = state.subjects.filter(subject => subject.academicLevelId === level.id);
+                const confirmed = await showConfirm(
+                    'Delete Academic Level?',
+                    `Delete "${level.name}" and its ${linkedSubjects.length} subject${linkedSubjects.length === 1 ? '' : 's'}? Study Plan notes will remain in Brainstorm.`,
+                    false,
+                    '',
+                    'Delete'
+                );
+                if (!confirmed) return;
+                for (const subject of linkedSubjects) await dbDelete('subjects', subject.id);
+                await dbDelete('academicLevels', level.id);
+                if (activeStudyLevelId === level.id) activeStudyLevelId = null;
+                await reloadStateFromDB();
+                showToast('Academic level deleted', 'success');
+            }
+
+            document.getElementById('btn-study-add-level').addEventListener('click', () => openAcademicLevelEditor());
+            document.getElementById('btn-study-back-levels').addEventListener('click', () => {
+                activeStudyLevelId = null;
+                renderStudyHub();
+            });
+            document.getElementById('btn-study-add-subject').addEventListener('click', () => openSubjectEditor());
+            document.getElementById('btn-close-academic-level-editor').addEventListener('click', closeAcademicLevelEditor);
+            document.getElementById('btn-cancel-academic-level-editor').addEventListener('click', closeAcademicLevelEditor);
+            document.getElementById('btn-save-academic-level-editor').addEventListener('click', async () => {
+                if (!currentDraftAcademicLevel) return;
+                const name = academicLevelNameInput.value.trim();
+                if (!name) {
+                    showToast('Please enter a program name', 'error');
+                    academicLevelNameInput.focus();
+                    return;
+                }
+                currentDraftAcademicLevel.name = name;
+                currentDraftAcademicLevel.type = academicLevelTypeInput.value;
+                currentDraftAcademicLevel.status = academicLevelStatusInput.value;
+                currentDraftAcademicLevel.institution = academicLevelInstitutionInput.value.trim();
+                currentDraftAcademicLevel.updatedAt = Date.now();
+                await dbPut('academicLevels', currentDraftAcademicLevel);
+                closeAcademicLevelEditor();
+                await reloadStateFromDB();
+                showToast('Academic level saved', 'success');
+            });
+
+            function createSubjectDraft(subject = null) {
+                const draft = subject ? { ...subject } : {
+                    id: generateId(),
+                    academicLevelId: activeStudyLevelId,
+                    title: '',
+                    professor: '',
+                    year: 1,
+                    completed: false,
+                    topics: [],
+                    activities: [],
+                    exams: [],
+                    createdAt: Date.now(),
+                    discarded: false
+                };
+                draft.topics = (draft.topics || []).map(topic => ({ ...topic, id: topic.id || generateId() }));
+                draft.activities = (draft.activities || []).map(activity => ({
+                    ...activity,
+                    id: activity.id || generateId(),
+                    peopleCount: Math.max(1, Number(activity.peopleCount) || 1),
+                    contributors: Array.isArray(activity.contributors) ? [...activity.contributors] : []
+                }));
+                draft.exams = (draft.exams || []).map(exam => ({ ...exam, id: exam.id || generateId(), topicChecks: { ...(exam.topicChecks || {}) } }));
+                return draft;
+            }
+
+            function openSubjectEditor(subject = null) {
+                if (!activeStudyLevelId && subject) activeStudyLevelId = subject.academicLevelId;
+                currentDraftSubject = createSubjectDraft(subject);
+                document.getElementById('subject-editor-title').textContent = subject ? 'Edit Subject' : 'New Subject';
+                document.getElementById('subject-edit-id').value = currentDraftSubject.id;
+                document.getElementById('subject-title').value = currentDraftSubject.title || '';
+                document.getElementById('subject-professor').value = currentDraftSubject.professor || '';
+                document.getElementById('subject-year').value = Math.max(1, Math.floor(Number(currentDraftSubject.year) || 1));
+                document.getElementById('subject-completed').checked = !!currentDraftSubject.completed;
+                document.getElementById('subject-image').value = '';
+                renderSubjectTopics();
+                renderSubjectActivities();
+                renderSubjectExams();
+                renderSubjectImage();
+                document.getElementById('modal-subject-editor').classList.add('open');
+                setTimeout(() => document.getElementById('subject-title').focus(), 40);
+            }
+
+            function closeSubjectEditor() {
+                document.getElementById('modal-subject-editor').classList.remove('open');
+                clearSubjectEditorImageUrl();
+                currentDraftSubject = null;
+            }
+
+            function renderSubjectTopics() {
+                const container = document.getElementById('subject-topics-list');
+                container.replaceChildren();
+                if (!currentDraftSubject.topics.length) {
+                    const hint = document.createElement('div');
+                    hint.className = 'study-subject-card-meta';
+                    hint.textContent = 'Add course topics, then create a Study Plan note for any topic.';
+                    container.appendChild(hint);
+                }
+                currentDraftSubject.topics.forEach(topic => {
+                    const row = document.createElement('div');
+                    row.className = 'study-list-row study-topic-row';
+                    const input = document.createElement('input');
+                    input.className = 'form-input';
+                    input.type = 'text';
+                    input.placeholder = 'Topic name';
+                    input.value = topic.title || '';
+                    input.addEventListener('input', () => {
+                        topic.title = input.value;
+                        plan.disabled = !topic.title.trim();
+                        renderSubjectExams();
+                    });
+                    const plan = document.createElement('button');
+                    plan.type = 'button';
+                    plan.className = 'sq-btn sq-btn-sm';
+                    plan.textContent = topic.studyPlanNoteId ? 'Open Study Plan' : 'Create Study Plan';
+                    plan.disabled = !topic.title.trim();
+                    plan.addEventListener('click', () => createTopicStudyPlan(topic));
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'sq-btn sq-btn-icon sq-btn-sm';
+                    remove.title = 'Remove topic';
+                    remove.textContent = '×';
+                    remove.addEventListener('click', () => {
+                        currentDraftSubject.topics = currentDraftSubject.topics.filter(item => item.id !== topic.id);
+                        currentDraftSubject.exams.forEach(exam => { delete exam.topicChecks[topic.id]; });
+                        renderSubjectTopics();
+                        renderSubjectExams();
+                    });
+                    row.append(input, plan, remove);
+                    container.appendChild(row);
+                });
+            }
+
+            function renderSubjectActivities() {
+                const container = document.getElementById('subject-activities-list');
+                container.replaceChildren();
+                if (!currentDraftSubject.activities.length) {
+                    const hint = document.createElement('div');
+                    hint.className = 'study-subject-card-meta';
+                    hint.textContent = 'No activities or homework added yet.';
+                    container.appendChild(hint);
+                }
+                currentDraftSubject.activities.forEach(activity => {
+                    const row = document.createElement('div');
+                    row.className = 'study-list-row';
+                    const title = document.createElement('input');
+                    title.className = 'form-input';
+                    title.placeholder = 'Activity / homework title';
+                    title.value = activity.title || '';
+                    title.addEventListener('input', () => { activity.title = title.value; });
+                    const fields = document.createElement('div');
+                    fields.className = 'form-row';
+                    fields.style.marginTop = '8px';
+                    const typeGroup = document.createElement('div');
+                    typeGroup.className = 'form-group';
+                    const typeLabel = document.createElement('label');
+                    typeLabel.className = 'form-label';
+                    typeLabel.textContent = 'Type';
+                    const type = document.createElement('select');
+                    type.className = 'form-select';
+                    [['project', 'Project'], ['form', 'Form'], ['quiz', 'Quiz'], ['article', 'Article']].forEach(([value, text]) => {
+                        const option = document.createElement('option');
+                        option.value = value;
+                        option.textContent = text;
+                        type.appendChild(option);
+                    });
+                    type.value = activity.type || 'project';
+                    type.addEventListener('change', () => { activity.type = type.value; });
+                    typeGroup.append(typeLabel, type);
+                    const peopleGroup = document.createElement('div');
+                    peopleGroup.className = 'form-group';
+                    const peopleLabel = document.createElement('label');
+                    peopleLabel.className = 'form-label';
+                    peopleLabel.textContent = 'Number of people';
+                    const people = document.createElement('input');
+                    people.type = 'number';
+                    people.min = '1';
+                    people.step = '1';
+                    people.className = 'form-input';
+                    people.value = String(Math.max(1, Number(activity.peopleCount) || 1));
+                    people.addEventListener('change', () => {
+                        activity.peopleCount = Math.max(1, Math.floor(Number(people.value) || 1));
+                        activity.contributors = (activity.contributors || []).slice(0, activity.peopleCount);
+                        while (activity.contributors.length < activity.peopleCount) activity.contributors.push('');
+                        renderSubjectActivities();
+                    });
+                    peopleGroup.append(peopleLabel, people);
+                    fields.append(typeGroup, peopleGroup);
+                    const dates = document.createElement('div');
+                    dates.className = 'form-row';
+                    dates.style.marginTop = '8px';
+                    [['Start date', 'startDate'], ['Due date', 'dueDate']].forEach(([labelText, key]) => {
+                        const group = document.createElement('div');
+                        group.className = 'form-group';
+                        const label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.textContent = labelText;
+                        const input = document.createElement('input');
+                        input.type = 'date';
+                        input.className = 'form-input';
+                        input.value = activity[key] || '';
+                        input.addEventListener('input', () => { activity[key] = input.value; });
+                        group.append(label, input);
+                        dates.appendChild(group);
+                    });
+                    const contributors = document.createElement('div');
+                    contributors.className = 'form-row';
+                    contributors.style.marginTop = '8px';
+                    activity.contributors = activity.contributors || [];
+                    const contributorCount = Math.max(1, Math.floor(Number(activity.peopleCount) || 1));
+                    while (activity.contributors.length < contributorCount) activity.contributors.push('');
+                    activity.contributors.slice(0, contributorCount).forEach((name, index) => {
+                        const group = document.createElement('div');
+                        group.className = 'form-group';
+                        const label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.textContent = `Contributor ${index + 1}`;
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'form-input';
+                        input.placeholder = 'Classmate name';
+                        input.value = name || '';
+                        input.addEventListener('input', () => { activity.contributors[index] = input.value; });
+                        group.append(label, input);
+                        contributors.appendChild(group);
+                    });
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'sq-btn sq-btn-sm';
+                    remove.textContent = 'Remove activity';
+                    remove.style.marginTop = '8px';
+                    remove.addEventListener('click', () => {
+                        currentDraftSubject.activities = currentDraftSubject.activities.filter(item => item.id !== activity.id);
+                        renderSubjectActivities();
+                    });
+                    row.append(title, fields, dates, contributors, remove);
+                    container.appendChild(row);
+                });
+            }
+
+            function renderSubjectExams() {
+                const container = document.getElementById('subject-exams-list');
+                container.replaceChildren();
+                if (!currentDraftSubject.exams.length) {
+                    const hint = document.createElement('div');
+                    hint.className = 'study-subject-card-meta';
+                    hint.textContent = 'No exams added yet.';
+                    container.appendChild(hint);
+                }
+                currentDraftSubject.exams.forEach(exam => {
+                    exam.topicChecks = exam.topicChecks || {};
+                    const row = document.createElement('div');
+                    row.className = 'study-list-row';
+                    const title = document.createElement('input');
+                    title.className = 'form-input';
+                    title.placeholder = 'Exam title';
+                    title.value = exam.title || '';
+                    title.addEventListener('input', () => { exam.title = title.value; });
+                    const dates = document.createElement('div');
+                    dates.className = 'form-row';
+                    dates.style.marginTop = '8px';
+                    [['Start date', 'startDate'], ['Due date', 'dueDate']].forEach(([labelText, key]) => {
+                        const group = document.createElement('div');
+                        group.className = 'form-group';
+                        const label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.textContent = labelText;
+                        const input = document.createElement('input');
+                        input.type = 'date';
+                        input.className = 'form-input';
+                        input.value = exam[key] || '';
+                        input.addEventListener('input', () => { exam[key] = input.value; });
+                        group.append(label, input);
+                        dates.appendChild(group);
+                    });
+                    const topicTitle = document.createElement('div');
+                    topicTitle.className = 'form-label';
+                    topicTitle.style.marginTop = '9px';
+                    topicTitle.textContent = 'Exam topics · select topics and mark study progress';
+                    const topics = document.createElement('div');
+                    topics.style.display = 'grid';
+                    topics.style.gap = '5px';
+                    currentDraftSubject.topics.forEach(topic => {
+                        const topicRow = document.createElement('label');
+                        topicRow.style.display = 'flex';
+                        topicRow.style.alignItems = 'center';
+                        topicRow.style.gap = '7px';
+                        topicRow.style.fontSize = '0.78rem';
+                        const include = document.createElement('input');
+                        include.type = 'checkbox';
+                        include.checked = Object.prototype.hasOwnProperty.call(exam.topicChecks, topic.id);
+                        const studied = document.createElement('input');
+                        studied.type = 'checkbox';
+                        studied.checked = !!exam.topicChecks[topic.id];
+                        studied.disabled = !include.checked;
+                        const topicLabel = document.createElement('span');
+                        topicLabel.textContent = topic.title || 'Untitled topic';
+                        const studiedLabel = document.createElement('span');
+                        studiedLabel.style.marginLeft = 'auto';
+                        studiedLabel.textContent = 'Studied';
+                        include.addEventListener('change', () => {
+                            if (include.checked) exam.topicChecks[topic.id] = false;
+                            else delete exam.topicChecks[topic.id];
+                            renderSubjectExams();
+                        });
+                        studied.addEventListener('change', () => { exam.topicChecks[topic.id] = studied.checked; });
+                        topicRow.append(include, topicLabel, studied, studiedLabel);
+                        topics.appendChild(topicRow);
+                    });
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'sq-btn sq-btn-sm';
+                    remove.textContent = 'Remove exam';
+                    remove.style.marginTop = '9px';
+                    remove.addEventListener('click', () => {
+                        currentDraftSubject.exams = currentDraftSubject.exams.filter(item => item.id !== exam.id);
+                        renderSubjectExams();
+                    });
+                    row.append(title, dates, topicTitle, topics, remove);
+                    container.appendChild(row);
+                });
+            }
+
+            function renderSubjectImage() {
+                clearSubjectEditorImageUrl();
+                const info = document.getElementById('subject-image-info');
+                const preview = document.getElementById('subject-image-preview');
+                const removeButton = document.getElementById('btn-remove-subject-image');
+                const attachment = currentDraftSubject.imageAttachment;
+                if (attachment && attachment.blob instanceof Blob) {
+                    subjectEditorImageUrl = URL.createObjectURL(attachment.blob);
+                    preview.src = subjectEditorImageUrl;
+                    preview.style.display = '';
+                    info.textContent = attachment.name || 'Image attached';
+                    removeButton.style.display = '';
+                } else {
+                    preview.removeAttribute('src');
+                    preview.style.display = 'none';
+                    info.textContent = 'No image attached';
+                    removeButton.style.display = 'none';
+                }
+            }
+
+            async function createTopicStudyPlan(topic) {
+                if (!currentDraftSubject || !topic.title.trim()) return;
+                const title = document.getElementById('subject-title').value.trim();
+                if (!title) {
+                    showToast('Enter and save a subject title before creating its study plan', 'error');
+                    document.getElementById('subject-title').focus();
+                    return;
+                }
+                currentDraftSubject.title = title;
+                currentDraftSubject.professor = document.getElementById('subject-professor').value.trim();
+                currentDraftSubject.year = Math.max(1, Math.floor(Number(document.getElementById('subject-year').value) || 1));
+                currentDraftSubject.completed = document.getElementById('subject-completed').checked;
+                await dbPut('subjects', currentDraftSubject);
+
+                let note = topic.studyPlanNoteId ? state.notes.find(item => item.id === topic.studyPlanNoteId) : null;
+                if (!note) {
+                    const level = getAcademicLevelById(currentDraftSubject.academicLevelId);
+                    note = {
+                        id: generateId(),
+                        title: `Study Plan: ${topic.title}`,
+                        contentHTML: `<h2>Study Plan: ${escapeHtml(topic.title)}</h2><p><strong>Subject:</strong> ${escapeHtml(currentDraftSubject.title)}</p><p><strong>Academic Level:</strong> ${escapeHtml(level ? `${level.type} · ${level.name}` : 'Academic Level')}</p><h3>Learning goals</h3><ul><li>Write the key concepts to understand.</li><li>Summarize important examples and definitions.</li><li>Review and test your understanding.</li></ul><h3>Study notes</h3><p>Add your notes here.</p>`,
+                        tags: ['Study Plan'],
+                        studyPlan: {
+                            academicLevelId: currentDraftSubject.academicLevelId,
+                            subjectId: currentDraftSubject.id,
+                            topicId: topic.id,
+                            topicTitle: topic.title
+                        },
+                        createdAt: Date.now(),
+                        updatedAt: Date.now(),
+                        discarded: false
+                    };
+                    topic.studyPlanNoteId = note.id;
+                    await dbPut('notes', note);
+                    await dbPut('subjects', currentDraftSubject);
+                }
+                const subjectIndex = state.subjects.findIndex(subject => subject.id === currentDraftSubject.id);
+                if (subjectIndex >= 0) state.subjects[subjectIndex] = { ...currentDraftSubject };
+                else state.subjects.push({ ...currentDraftSubject });
+                const noteIndex = state.notes.findIndex(item => item.id === note.id);
+                if (noteIndex >= 0) state.notes[noteIndex] = note;
+                else state.notes.unshift(note);
+                renderSubjectTopics();
+                document.getElementById('modal-subject-editor').classList.remove('open');
+                openNoteEditor(note);
+                showToast('Study Plan note created and tagged in Brainstorm', 'success');
+            }
+
+            document.getElementById('btn-add-subject-topic').addEventListener('click', () => {
+                currentDraftSubject.topics.push({ id: generateId(), title: '' });
+                renderSubjectTopics();
+            });
+            document.getElementById('btn-add-subject-activity').addEventListener('click', () => {
+                currentDraftSubject.activities.push({
+                    id: generateId(),
+                    title: '',
+                    type: 'project',
+                    startDate: '',
+                    dueDate: '',
+                    peopleCount: 1,
+                    contributors: ['']
+                });
+                renderSubjectActivities();
+            });
+            document.getElementById('btn-add-subject-exam').addEventListener('click', () => {
+                currentDraftSubject.exams.push({ id: generateId(), title: '', startDate: '', dueDate: '', topicChecks: {} });
+                renderSubjectExams();
+            });
+            document.getElementById('subject-image').addEventListener('change', event => {
+                const file = event.target.files && event.target.files[0];
+                event.target.value = '';
+                if (!file) return;
+                const extension = file.name.split('.').pop().toLowerCase();
+                if (!['png', 'jpg', 'jpeg'].includes(extension) || !['image/png', 'image/jpeg'].includes(file.type)) {
+                    showToast('Only PNG, JPG, and JPEG images are allowed', 'error');
+                    return;
+                }
+                currentDraftSubject.imageAttachment = { id: generateId(), name: file.name, blob: file };
+                renderSubjectImage();
+            });
+            document.getElementById('btn-remove-subject-image').addEventListener('click', () => {
+                currentDraftSubject.imageAttachment = null;
+                renderSubjectImage();
+            });
+            document.getElementById('btn-close-subject-editor').addEventListener('click', closeSubjectEditor);
+            document.getElementById('btn-cancel-subject-editor').addEventListener('click', closeSubjectEditor);
+            document.getElementById('btn-save-subject-editor').addEventListener('click', async () => {
+                if (!currentDraftSubject) return;
+                const title = document.getElementById('subject-title').value.trim();
+                if (!title) {
+                    showToast('Please provide a subject title', 'error');
+                    document.getElementById('subject-title').focus();
+                    return;
+                }
+                currentDraftSubject.title = title;
+                currentDraftSubject.professor = document.getElementById('subject-professor').value.trim();
+                currentDraftSubject.year = Math.max(1, Math.floor(Number(document.getElementById('subject-year').value) || 1));
+                currentDraftSubject.completed = document.getElementById('subject-completed').checked;
+                currentDraftSubject.updatedAt = Date.now();
+                currentDraftSubject.topics = currentDraftSubject.topics.filter(topic => topic.title.trim());
+                currentDraftSubject.activities = currentDraftSubject.activities.map(activity => ({
+                    ...activity,
+                    title: (activity.title || '').trim(),
+                    peopleCount: Math.max(1, Math.floor(Number(activity.peopleCount) || 1)),
+                    contributors: (activity.contributors || []).slice(0, Math.max(1, Math.floor(Number(activity.peopleCount) || 1)))
+                }));
+                currentDraftSubject.exams = currentDraftSubject.exams.map(exam => ({ ...exam, title: (exam.title || '').trim() }));
+                await dbPut('subjects', currentDraftSubject);
+                closeSubjectEditor();
+                await reloadStateFromDB();
+                showToast('Subject saved successfully', 'success');
+            });
+
             // --- Sidebar Navigation Switching (Side Quests vs Milestones vs Archives) ---
             const navSideQuests = document.getElementById('nav-side-quests');
             const navMilestones = document.getElementById('nav-milestones');
+            const navCalendar = document.getElementById('nav-calendar');
+            const navStudyHub = document.getElementById('nav-study-hub');
             const navMovies = document.getElementById('nav-movies');
             const navCourses = document.getElementById('nav-courses');
             const navBooks = document.getElementById('nav-books');
@@ -13252,6 +15134,8 @@
             const navArchives = document.getElementById('nav-archives');
             const viewSideQuests = document.getElementById('view-side-quests');
             const viewMilestones = document.getElementById('view-milestones');
+            const viewCalendar = document.getElementById('view-calendar');
+            const viewStudyHub = document.getElementById('view-study-hub');
             const viewMovies = document.getElementById('view-movies');
             const viewCourses = document.getElementById('view-courses');
             const viewBooks = document.getElementById('view-books');
@@ -13267,6 +15151,8 @@
                 // Reset nav states
                 navSideQuests.classList.remove('active');
                 navMilestones.classList.remove('active');
+                if (navCalendar) navCalendar.classList.remove('active');
+                if (navStudyHub) navStudyHub.classList.remove('active');
                 if (navMovies) navMovies.classList.remove('active');
                 if (navCourses) navCourses.classList.remove('active');
                 if (navBooks) navBooks.classList.remove('active');
@@ -13279,6 +15165,8 @@
                 // Hide all views
                 viewSideQuests.style.display = 'none';
                 viewMilestones.style.display = 'none';
+                if (viewCalendar) viewCalendar.style.display = 'none';
+                if (viewStudyHub) viewStudyHub.style.display = 'none';
                 if (viewMovies) viewMovies.style.display = 'none';
                 if (viewCourses) viewCourses.style.display = 'none';
                 if (viewBooks) viewBooks.style.display = 'none';
@@ -13292,6 +15180,14 @@
                     viewMilestones.style.display = 'flex';
                     updateArchiveCounts();
                     renderMilestonesGrid();
+                } else if (viewName === 'calendar') {
+                    if (navCalendar) navCalendar.classList.add('active');
+                    if (viewCalendar) viewCalendar.style.display = 'flex';
+                    renderCalendar();
+                } else if (viewName === 'study-hub') {
+                    if (navStudyHub) navStudyHub.classList.add('active');
+                    if (viewStudyHub) viewStudyHub.style.display = 'flex';
+                    renderStudyHub();
                 } else if (viewName === 'movies') {
                     if (navMovies) navMovies.classList.add('active');
                     if (viewMovies) viewMovies.style.display = 'flex';
@@ -13338,6 +15234,14 @@
 
             if (navCourses) {
                 navCourses.addEventListener('click', () => switchView('courses'));
+            }
+
+            if (navCalendar) {
+                navCalendar.addEventListener('click', () => switchView('calendar'));
+            }
+
+            if (navStudyHub) {
+                navStudyHub.addEventListener('click', () => switchView('study-hub'));
             }
 
             if (navBooks) {
@@ -16688,6 +18592,45 @@
                     });
                 });
 
+                // 8. Live academic subjects
+                state.subjects.forEach(subject => {
+                    if (subject.discarded) return;
+                    const level = state.academicLevels.find(item => item.id === subject.academicLevelId);
+                    const topics = subject.topics || [];
+                    const activities = subject.activities || [];
+                    const exams = subject.exams || [];
+                    const extras = [
+                        { icon: '📚', title: `${topics.length} topic${topics.length === 1 ? '' : 's'}` },
+                        { icon: '📝', title: `${activities.length} activit${activities.length === 1 ? 'y' : 'ies'}` },
+                        { icon: '🎓', title: `${exams.length} exam${exams.length === 1 ? '' : 's'}` },
+                        ...(subject.year ? [{ icon: '📅', title: `Year ${subject.year}` }] : [])
+                    ];
+                    items.push({
+                        id: subject.id,
+                        rawItem: subject,
+                        originKind: 'subject',
+                        type: 'Subject',
+                        kanban: 'Study Hub',
+                        kanbanId: null,
+                        location: `${level ? level.name : 'Academic Level'}${subject.year ? ` / Year ${subject.year}` : ''}`,
+                        title: subject.title || 'Untitled Subject',
+                        startDate: '—',
+                        dueDate: '—',
+                        priority: '—',
+                        status: subject.completed ? 'Passed' : 'In Progress',
+                        tags: [],
+                        tagsList: [],
+                        details: {
+                            checklistDone: 0,
+                            checklistTotal: 0,
+                            attachments: subject.imageAttachment ? 1 : 0,
+                            comments: 0,
+                            extras
+                        },
+                        createdAt: subject.createdAt || Date.now()
+                    });
+                });
+
                 return items;
             }
 
@@ -16794,7 +18737,8 @@
                         { key: 'Movies & Shows', label: 'Movies & Shows' },
                         { key: 'Courses', label: 'Courses' },
                         { key: 'Books', label: 'Books' },
-                        { key: 'Games', label: 'Games' }
+                        { key: 'Games', label: 'Games' },
+                        { key: 'Study Hub', label: 'Study Hub' }
                     ];
 
                     kanbanOptions.forEach(opt => {
@@ -16974,6 +18918,8 @@
                         return `<span class="archives-type-pill media-badge-docx"><span>📚</span><span>Book</span></span>`;
                     case 'Game':
                         return `<span class="archives-type-pill media-badge-mp4"><span>🎮</span><span>Game</span></span>`;
+                    case 'Subject':
+                        return `<span class="archives-type-pill media-badge-audio"><span>📖</span><span>Subject</span></span>`;
                     default:
                         return `<span class="archives-type-pill">${escapeHtml(type)}</span>`;
                 }
@@ -17143,6 +19089,12 @@
                                 if (targetGame) {
                                     targetGame.discarded = true;
                                     await dbPut('games', targetGame);
+                                }
+                            } else if (item.originKind === 'subject') {
+                                const targetSubject = state.subjects.find(subject => subject.id === item.id);
+                                if (targetSubject) {
+                                    targetSubject.discarded = true;
+                                    await dbPut('subjects', targetSubject);
                                 }
                             }
 
@@ -17335,6 +19287,13 @@
                 title.textContent = note.title || 'Untitled Note';
                 title.title = note.title || '';
                 info.appendChild(title);
+
+                (note.tags || []).forEach(tag => {
+                    const tagLabel = document.createElement('span');
+                    tagLabel.className = 'study-note-tag';
+                    tagLabel.textContent = tag;
+                    info.appendChild(tagLabel);
+                });
 
                 const date = document.createElement('p');
                 date.className = 'note-card-date';
