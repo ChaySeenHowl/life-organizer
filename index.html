@@ -926,7 +926,6 @@
             overflow: hidden;
             position: relative;
             transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
-            will-change: transform;
         }
 
         .sub-bucket-panel.drag-over-sub {
@@ -939,6 +938,7 @@
             border-style: dashed !important;
             border-color: var(--accent) !important;
             box-shadow: 0 0 14px rgba(217, 155, 38, 0.3) !important;
+            will-change: transform;
         }
 
         .sub-bucket-header {
@@ -1026,7 +1026,6 @@
             position: relative;
             transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
             user-select: none;
-            will-change: transform;
         }
 
         .task-card:hover {
@@ -1044,6 +1043,7 @@
             border: 1px dashed var(--accent) !important;
             transform: scale(0.98);
             box-shadow: 0 0 14px rgba(217, 155, 38, 0.3) !important;
+            will-change: transform;
         }
 
         /* Fine-grained Drag & Drop Parting and Insertion Line */
@@ -1114,7 +1114,6 @@
             position: relative;
             transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
             user-select: none;
-            will-change: transform;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -1135,6 +1134,7 @@
             border: 1px dashed var(--accent) !important;
             transform: scale(0.98);
             box-shadow: 0 0 14px rgba(217, 155, 38, 0.3) !important;
+            will-change: transform;
         }
 
         .media-card-thumb-area {
@@ -5984,6 +5984,25 @@
             font-size: 0.72rem;
             color: var(--text-muted);
         }
+
+        /* Defer offscreen card layout/paint without removing cards from the DOM. */
+        .movie-card,
+        .course-card,
+        .book-card,
+        .game-card {
+            content-visibility: auto;
+            contain-intrinsic-size: auto 410px;
+        }
+
+        .diagram-card {
+            content-visibility: auto;
+            contain-intrinsic-size: auto 220px;
+        }
+
+        .note-card {
+            content-visibility: auto;
+            contain-intrinsic-size: auto 240px;
+        }
     </style>
 </head>
 
@@ -10414,6 +10433,17 @@
                 await dbPut('games', gm3);
             }
 
+            async function removeResourceImages(storeName, resource) {
+                try {
+                    await dbPut(storeName, { ...resource, imageBlobs: [] });
+                    await reloadStateFromDB();
+                    showToast(`Removed image from "${resource.title}"`, 'success');
+                } catch (err) {
+                    console.error(`Failed to remove image from ${storeName}:`, err);
+                    showToast(`Could not remove image from "${resource.title}"`, 'error');
+                }
+            }
+
             // Refresh memory cache from DB
             async function reloadStateFromDB() {
                 // Sync theme and custom color overrides from settings store or localStorage
@@ -10493,15 +10523,15 @@
                 updateBoardHeading();
                 renderSidebarKanbans();
                 updateArchiveCounts();
-                renderBoard();
-                renderMilestonesGrid();
-                renderNotesGrid();
-                renderCoursesGrid();
-                renderMoviesGrid();
-                renderBooksGrid();
-                renderGamesGrid();
-                renderDiagramsGrid();
-                renderStudyHub();
+                if (state.activePage === 'side-quests') renderBoard();
+                if (state.activePage === 'milestones') renderMilestonesGrid();
+                if (state.activePage === 'brainstorm') renderNotesGrid();
+                if (state.activePage === 'courses') renderCoursesGrid();
+                if (state.activePage === 'movies') renderMoviesGrid();
+                if (state.activePage === 'books') renderBooksGrid();
+                if (state.activePage === 'games') renderGamesGrid();
+                if (state.activePage === 'diagrams') renderDiagramsGrid();
+                if (state.activePage === 'study-hub') renderStudyHub();
                 renderFilterOptions();
                 if (state.activePage === 'calendar') renderCalendar();
                 if (state.activePage === 'archives') {
@@ -15146,7 +15176,67 @@
             const navBrainstorm = document.getElementById('nav-brainstorm');
             const viewBrainstorm = document.getElementById('view-brainstorm');
 
+            function releaseViewRenderResources(viewName) {
+                let contentId = null;
+                let cleanImageUrls = null;
+                switch (viewName) {
+                    case 'side-quests': {
+                        cleanImageUrls = cleanCardBlobUrls;
+                        const boardViewport = document.getElementById('board-viewport');
+                        if (boardViewport) {
+                            boardViewport.querySelectorAll('.bucket-column').forEach(column => column.remove());
+                        }
+                        break;
+                    }
+                    case 'milestones':
+                        contentId = 'milestones-grid-container';
+                        break;
+                    case 'calendar':
+                        contentId = 'calendar-content';
+                        break;
+                    case 'study-hub':
+                        cleanImageUrls = cleanStudyImageUrls;
+                        contentId = 'study-level-grid';
+                        document.getElementById('study-subject-folders')?.replaceChildren();
+                        break;
+                    case 'movies':
+                        contentId = 'movies-folders-container';
+                        cleanImageUrls = cleanMovieBlobUrls;
+                        break;
+                    case 'courses':
+                        contentId = 'courses-folders-container';
+                        cleanImageUrls = cleanCourseBlobUrls;
+                        break;
+                    case 'brainstorm':
+                        contentId = 'notes-grid-container';
+                        break;
+                    case 'books':
+                        contentId = 'books-folders-container';
+                        cleanImageUrls = cleanBookBlobUrls;
+                        break;
+                    case 'games':
+                        contentId = 'games-folders-container';
+                        cleanImageUrls = cleanGameBlobUrls;
+                        break;
+                    case 'diagrams':
+                        contentId = 'diagrams-grid-container';
+                        cleanImageUrls = cleanDiagramBlobUrls;
+                        break;
+                    case 'archives':
+                        contentId = 'archives-tbody';
+                        break;
+                }
+
+                if (cleanImageUrls) cleanImageUrls();
+                if (contentId) {
+                    const content = document.getElementById(contentId);
+                    if (content) content.replaceChildren();
+                }
+            }
+
             function switchView(viewName) {
+                const previousPage = state.activePage;
+                if (previousPage !== viewName) releaseViewRenderResources(previousPage);
                 state.activePage = viewName;
                 // Reset nav states
                 navSideQuests.classList.remove('active');
@@ -17403,6 +17493,7 @@
                     img.src = blobUrl;
                     img.alt = movie.title || 'Movie Poster';
                     img.loading = 'lazy';
+                    img.decoding = 'async';
                     posterBox.appendChild(img);
                 } else {
                     // Placeholder
@@ -17600,6 +17691,7 @@
                 dropdown.innerHTML = `
           ${hasPlatform ? `<button class="sq-dropdown-item" id="menu-mov-open">↗️ Open ${escapeHtml(PLATFORMS_MAP[movie.platform].name)}</button>` : ''}
           ${hasImage ? `<button class="sq-dropdown-item" id="menu-mov-view">🔍 View Full Poster</button>` : ''}
+          ${hasImage ? `<button class="sq-dropdown-item" id="menu-mov-remove-image">🗑️ Remove image</button>` : ''}
           <button class="sq-dropdown-item" id="menu-mov-attach">📎 Attach image</button>
           <button class="sq-dropdown-item" id="menu-mov-edit">✏️ Edit</button>
           <button class="sq-dropdown-item" id="menu-mov-discard">🗑️ Discard</button>
@@ -17623,6 +17715,14 @@
                         if (primary && primary.blob) {
                             openImageViewer({ title: movie.title, imageBlob: primary.blob });
                         }
+                    };
+                }
+
+                const btnRemoveImage = document.getElementById('menu-mov-remove-image');
+                if (btnRemoveImage) {
+                    btnRemoveImage.onclick = async () => {
+                        hideDropdown();
+                        await removeResourceImages('movies', movie);
                     };
                 }
 
@@ -17956,6 +18056,7 @@
                     img.src = blobUrl;
                     img.alt = course.title || 'Course Poster';
                     img.loading = 'lazy';
+                    img.decoding = 'async';
                     posterBox.appendChild(img);
                 } else {
                     // Placeholder with graduation cap & book icon
@@ -18152,6 +18253,7 @@
                 dropdown.innerHTML = `
           ${hasUrl ? `<button class="sq-dropdown-item" id="menu-crs-open">↗️ Open link</button>` : ''}
           ${hasImage ? `<button class="sq-dropdown-item" id="menu-crs-view">🔍 View image</button>` : ''}
+          ${hasImage ? `<button class="sq-dropdown-item" id="menu-crs-remove-image">🗑️ Remove image</button>` : ''}
           <button class="sq-dropdown-item" id="menu-crs-attach">📎 Attach image</button>
           <button class="sq-dropdown-item" id="menu-crs-edit">✏️ Edit</button>
           <button class="sq-dropdown-item" id="menu-crs-discard">🗑️ Discard</button>
@@ -18175,6 +18277,14 @@
                         if (primary && primary.blob) {
                             openImageViewer({ title: course.title, imageBlob: primary.blob });
                         }
+                    };
+                }
+
+                const btnRemoveImage = document.getElementById('menu-crs-remove-image');
+                if (btnRemoveImage) {
+                    btnRemoveImage.onclick = async () => {
+                        hideDropdown();
+                        await removeResourceImages('courses', course);
                     };
                 }
 
@@ -20595,6 +20705,7 @@
                     img.src = blobUrl;
                     img.alt = book.title || 'Book Cover';
                     img.loading = 'lazy';
+                    img.decoding = 'async';
                     posterBox.appendChild(img);
                 } else {
                     // Clean book placeholder icon when no image
@@ -20738,6 +20849,7 @@
 
                 dropdown.innerHTML = `
           ${hasImage ? `<button class="sq-dropdown-item" id="menu-bk-view">🔍 View image</button>` : ''}
+          ${hasImage ? `<button class="sq-dropdown-item" id="menu-bk-remove-image">🗑️ Remove image</button>` : ''}
           <button class="sq-dropdown-item" id="menu-bk-attach">📎 Attach image</button>
           <button class="sq-dropdown-item" id="menu-bk-edit">✏️ Edit</button>
           <button class="sq-dropdown-item" id="menu-bk-discard">🗑️ Discard</button>
@@ -20753,6 +20865,14 @@
                         if (primary && primary.blob) {
                             openImageViewer({ title: book.title, imageBlob: primary.blob });
                         }
+                    };
+                }
+
+                const btnRemoveImage = document.getElementById('menu-bk-remove-image');
+                if (btnRemoveImage) {
+                    btnRemoveImage.onclick = async () => {
+                        hideDropdown();
+                        await removeResourceImages('books', book);
                     };
                 }
 
@@ -21088,6 +21208,7 @@
                     img.src = blobUrl;
                     img.alt = game.title || 'Game Cover';
                     img.loading = 'lazy';
+                    img.decoding = 'async';
                     posterBox.appendChild(img);
                 } else {
                     // Clean gamepad placeholder icon when no image
@@ -21251,6 +21372,7 @@
 
                 dropdown.innerHTML = `
           ${hasImage ? `<button class="sq-dropdown-item" id="menu-gm-view">🔍 View image</button>` : ''}
+          ${hasImage ? `<button class="sq-dropdown-item" id="menu-gm-remove-image">🗑️ Remove image</button>` : ''}
           <button class="sq-dropdown-item" id="menu-gm-attach">📎 Attach image</button>
           <button class="sq-dropdown-item" id="menu-gm-edit">✏️ Edit</button>
           <button class="sq-dropdown-item" id="menu-gm-discard">🗑️ Discard</button>
@@ -21266,6 +21388,14 @@
                         if (primary && primary.blob) {
                             openImageViewer({ title: game.title, imageBlob: primary.blob });
                         }
+                    };
+                }
+
+                const btnRemoveImage = document.getElementById('menu-gm-remove-image');
+                if (btnRemoveImage) {
+                    btnRemoveImage.onclick = async () => {
+                        hideDropdown();
+                        await removeResourceImages('games', game);
                     };
                 }
 
@@ -21509,6 +21639,7 @@
                     img.src = blobUrl;
                     img.alt = diagram.title || 'Diagram Preview';
                     img.loading = 'lazy';
+                    img.decoding = 'async';
                     posterBox.appendChild(img);
                 } else {
                     // Clean diagram placeholder icon
@@ -21658,6 +21789,7 @@
                 dropdown.innerHTML = `
           ${hasUrl ? `<button class="sq-dropdown-item" id="menu-diag-open">↗️ Open link</button>` : ''}
           ${hasImage ? `<button class="sq-dropdown-item" id="menu-diag-view">🔍 View image</button>` : ''}
+          ${hasImage ? `<button class="sq-dropdown-item" id="menu-diag-remove-image">🗑️ Remove image</button>` : ''}
           <button class="sq-dropdown-item" id="menu-diag-attach">📎 Attach image</button>
           <button class="sq-dropdown-item" id="menu-diag-edit">✏️ Edit</button>
           <button class="sq-dropdown-item" id="menu-diag-discard">🗑️ Discard</button>
@@ -21681,6 +21813,14 @@
                         if (primary && primary.blob) {
                             openImageViewer({ title: diagram.title, imageBlob: primary.blob });
                         }
+                    };
+                }
+
+                const btnRemoveImage = document.getElementById('menu-diag-remove-image');
+                if (btnRemoveImage) {
+                    btnRemoveImage.onclick = async () => {
+                        hideDropdown();
+                        await removeResourceImages('diagrams', diagram);
                     };
                 }
 

@@ -21,4 +21,16 @@ Keep these paths unchanged so the seasonal icons and wallpaper load:
 app does not need it. Opening `index.html` with the GitHub file viewer does not
 run the app; use the GitHub Pages URL instead.
 
+## Performance notes
 
+The app renders the active view on data refresh and rebuilds a view when it is
+opened, rather than keeping every view's cards mounted at once. Leaving a view
+releases its rendered cards and any object URLs used by image previews. Large
+resource-card grids defer offscreen layout and painting, and poster images load
+lazily with asynchronous decoding. Drag-and-drop cards request a compositor
+layer only while being dragged.
+
+The app is a single static page with no build pipeline or server. Browser tab
+suspension is left to the browser, and worker-based processing or virtualized
+drag-and-drop lists are not used because they add complexity without a measured
+need for this personal organizer.
